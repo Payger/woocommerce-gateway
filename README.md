@@ -1,3 +1,0 @@
-# WooCommerce Merchant plugin
-
-Todo..
