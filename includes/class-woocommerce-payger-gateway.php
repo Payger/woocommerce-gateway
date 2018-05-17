@@ -51,7 +51,11 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		// Define user set variables
 		$this->title        = $this->get_option( 'title' );
 		$this->description  = $this->get_option( 'description' );
-		$this->instructions = $this->get_option( 'instructions' );
+		//$this->instructions = $this->get_option( 'instructions' );
+
+
+		//This will save our settings
+		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
 
 	}
 
@@ -77,26 +81,40 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 	 * @since 1.0.0
 	 * @author Ana Aires ( ana@widgilabs.com )
 	 */
-	public function process_admin_options() {
+	public function init_form_fields() {
 		$this->form_fields = array(
 			'enabled'     => array(
 				'title'   => __( 'Enable/Disable', 'payger' ),
 				'type'    => 'checkbox',
-				'label'   => __( 'Enable Cheque Payment', 'payger' ),
+				'label'   => __( 'Enable payments through Payger', 'payger' ),
 				'default' => 'yes'
 			),
-			'title'   => array(
+			'title'       => array(
 				'title'       => __( 'Title', 'payger' ),
 				'type'        => 'text',
 				'description' => __( 'This controls the title which the user sees during checkout.', 'payger' ),
-				'default'     => __( 'Cheque Payment', 'payger' ),
+				'default'     => __( 'Payger', 'payger' ),
 				'desc_tip'    => true,
 			),
 			'description' => array(
-				'title'   => __( 'Customer Message', 'payger' ),
-				'type'    => 'textarea',
-				'default' => ''
-			)
+				'title'       => __( 'Description', 'payger' ),
+				'type'        => 'text',
+				'default'     => '',
+				'description' => __( 'This controls the description which the user sees during checkout.', 'payger' ),
+				'desc_tip'    => true,
+			),
+			'key'         => array(
+				'title'       => __( 'Username', 'payger' ),
+				'type'        => 'text',
+				'description' => __( 'Key provided by Payger when signing the contract.', 'payger' ),
+				'desc_tip'    => true,
+			),
+			'secret'      => array(
+				'title'       => __( 'Password', 'payger' ),
+				'type'        => 'text',
+				'description' => __( 'Secret provided by Payger when signing the contract.', 'payger' ),
+				'desc_tip'    => true,
+			),
 		);
 	}
 
