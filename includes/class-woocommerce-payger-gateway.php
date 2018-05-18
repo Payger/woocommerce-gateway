@@ -57,6 +57,8 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		//This will save our settings
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
 
+		require_once( 'PaygerRequest.php' );
+
 	}
 
 	/**
@@ -118,6 +120,36 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		);
 	}
 
+
+	/**
+	 * Form to output on checkout
+	 * @since 1.0.0
+	 * @author Ana Aires ( ana@widgilabs.com )
+	 */
+	public function payment_fields() {
+
+		$description = $this->get_description();
+
+		/*if ( 'yes' == $this->sandbox ) {
+			$description .= ' ' . sprintf( __( 'TEST MODE ENABLED. Use a test card: %s', 'woocommerce' ), '<a href="https://www.simplify.com/commerce/docs/tutorial/index#testing">https://www.simplify.com/commerce/docs/tutorial/index#testing</a>' );
+		}*/
+
+		if ( $description ) {
+			echo wpautop( wptexturize( trim( $description ) ) );
+		}
+
+		?>
+		<p class="form-row form-row-wide">
+			<br/>
+			<label for="<?php echo $this->id; ?>">
+				<?php _e( 'Choose Currenty', 'payger' ); ?>
+				<abbr class="required" title="<?php _e( 'required', 'payger' ); ?>">*</abbr>
+			</label>
+			<input type="text" autocomplete="off" class="input-text" name="<?php echo $this->id; ?>" id="<?php echo $this->id; ?>" required/>
+		</p>
+	<?php
+	}
+
 	/**
 	 * Actual function for payment process
 	 * @param int $order_id
@@ -131,7 +163,16 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		$order = new WC_Order( $order_id );
 
 		// Mark as on-hold (we're awaiting the cheque)
-		$order->update_status('on-hold', __( 'Awaiting cheque payment', 'woocommerce' ));
+		$order->update_status('on-hold', __( 'Awaiting Payger payment', 'payger' ));
+
+
+		error_log( 'Process Payment with Payger' );
+
+		$request = new PaygerRequest( 'sequences.get' );
+		$request->request();
+
+		//request payger
+
 
 		// Reduce stock levels
 		$order->reduce_order_stock();
