@@ -151,22 +151,27 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 	}
 
 
+	/**
+	 * Gets current woocommerce currency and checks which are the corresponding currencies this
+	 * merchant can offer as payment possible currencies.
+	 * exchange-rates should filter results based on from currency
+	 *
+	 * @return array
+	 * @since 1.0.0
+	 * @author Ana Aires ( ana@widgilabs.com )
+	 */
 	public function get_accepted_currencies_options() {
-
 
 		$selling_currency = get_option('woocommerce_currency');
 
 		$response = $this->payger->get( 'merchants/exchange-rates', array('from' => $selling_currency ) );
 
-		error_log('RESPONSE ');
-
-
-		$rates = $response['data']->content->rates;
-
 		$currencies = array();
-		foreach( $rates as $rate ) {
 
-			$currencies[ $rate->asset ] = $rate->asset;
+		if ( $rates = $response['data']->content->rates ) {
+			foreach ( $rates as $rate ) {
+				$currencies[ $rate->asset ] = $rate->asset;
+			}
 		}
 
 		return $currencies;
@@ -189,16 +194,33 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			echo wpautop( wptexturize( trim( $description ) ) );
 		}
 
-		?>
-		<p class="form-row form-row-wide">
-			<br/>
-			<label for="<?php echo $this->id; ?>">
-				<?php _e( 'Choose Currency', 'payger' ); ?>
-				<abbr class="required" title="<?php _e( 'required', 'payger' ); ?>">*</abbr>
-			</label>
-			<input type="text" autocomplete="off" class="input-text" name="<?php echo $this->id; ?>" id="<?php echo $this->id; ?>" required/>
-		</p>
-	<?php
+		error_log('THIs GET OPTIO');
+		error_log(print_r($this->get_option('accepted'), true));
+
+		$currency_options = $this->get_option( 'accepted' );
+		$options          = '';
+
+		if ( $currency_options && ! empty( $currency_options ) ) {
+			foreach ( $currency_options as $option ) {
+				$options .= sprintf( '<option value="%1$s">%1$s</option>', $option );
+			}
+		}
+
+		if( ! empty( $options ) ) {
+			printf(
+				'<p class="form-row form-row-wide">
+				<label for="<?php echo $this->id; ?>">%1$s
+					<abbr class="required" title="required">*</abbr>
+				</label>
+				<select name="%2$s" id="%2$s">
+					%3$s
+				</select>
+			</p>',
+				__( 'Choose Currency', 'payger' ),
+				$this->id,
+				$options
+			);
+		}
 	}
 
 	/**
