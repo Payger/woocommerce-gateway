@@ -117,7 +117,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			'description' => array(
 				'title'       => __( 'Description', 'payger' ),
 				'type'        => 'text',
-				'default'     => '',
+				'default'     => __( 'Pay with cryptocurrency provided by Payger', 'payger' ),
 				'description' => __( 'This controls the description which the user sees during checkout.', 'payger' ),
 				'desc_tip'    => true,
 			),
