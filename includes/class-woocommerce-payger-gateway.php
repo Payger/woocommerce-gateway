@@ -129,7 +129,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			),
 			'secret'      => array(
 				'title'       => __( 'Password', 'payger' ),
-				'type'        => 'text',
+				'type'        => 'password',
 				'description' => __( 'Secret provided by Payger when signing the contract.', 'payger' ),
 				'desc_tip'    => true,
 			),
@@ -193,7 +193,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		<p class="form-row form-row-wide">
 			<br/>
 			<label for="<?php echo $this->id; ?>">
-				<?php _e( 'Choose Currenty', 'payger' ); ?>
+				<?php _e( 'Choose Currency', 'payger' ); ?>
 				<abbr class="required" title="<?php _e( 'required', 'payger' ); ?>">*</abbr>
 			</label>
 			<input type="text" autocomplete="off" class="input-text" name="<?php echo $this->id; ?>" id="<?php echo $this->id; ?>" required/>
