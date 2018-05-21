@@ -1,32 +1,60 @@
 (function( $ ) {
 	'use strict';
 
-	/**
-	 * All of the code for your public-facing JavaScript source
-	 * should reside in this file.
-	 *
-	 * Note: It has been assumed you will write jQuery code here, so the
-	 * $ function reference has been prepared for usage within the scope
-	 * of this function.
-	 *
-	 * This enables you to define handlers, for when the DOM is ready:
-	 *
-	 * $(function() {
-	 *
-	 * });
-	 *
-	 * When the window is loaded:
-	 *
-	 * $( window ).load(function() {
-	 *
-	 * });
-	 *
-	 * ...and/or other possibilities.
-	 *
-	 * Ideally, it is not considered best practise to attach more than a
-	 * single DOM-ready or window-load handler for a particular page.
-	 * Although scripts in the WordPress core, Plugins and Themes may be
-	 * practising this, we should strive to set a better example in our own work.
-	 */
+    //needed since payment options are added to the DOM after the document ready
+    jQuery(document).ajaxComplete(function () {
+
+
+        //Change currency
+        $('#payger_gateway_coin').change(function () {
+
+            var $choosen_currency = $(this).val();
+
+            //get current rates for this currency
+            $.ajax({
+
+                cache: false,
+                timeout: 3000,
+                url: payger.ajaxurl,
+                type: "get",
+                data: ({
+                    nonce:payger.nonce,
+                    action:'payger_get_quote',
+                    to: $choosen_currency,
+                    amount: 100,
+                }),
+
+                beforeSend: function() {
+
+                   //init loading
+                },
+
+                success: function( response, textStatus, jqXHR ){
+
+                    var rate = response.data.rate;
+                    var amount = response.data.amount;
+
+
+                    console.log( 'RESPONSE -> ' );
+                    console.log( rate );
+                    console.log( amount );
+
+                    $('.payger_amount').html( amount );
+                    $('.payger_rate').html( rate );
+
+                },
+
+                error: function( jqXHR, textStatus, errorThrown ){
+                    console.log( 'The following error occured: ' + textStatus, errorThrown );
+                },
+
+                complete: function( jqXHR, textStatus ){
+                }
+
+            });
+
+        });
+
+    });
 
 })( jQuery );
