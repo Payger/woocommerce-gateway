@@ -186,8 +186,6 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 	 */
 	public function payment_fields() {
 
-		$description = $this->get_description();
-
 		/*if ( 'yes' == $this->sandbox ) {
 			$description .= ' ' . sprintf( __( 'TEST MODE ENABLED. Use a test card: %s', 'woocommerce' ), '<a href="https://www.simplify.com/commerce/docs/tutorial/index#testing">https://www.simplify.com/commerce/docs/tutorial/index#testing</a>' );
 		}*/
@@ -196,6 +194,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			echo wpautop( wptexturize( trim( $description ) ) );
 		}
 
+		$selling_currency = get_option('woocommerce_currency');
 		$currency_options = $this->get_option( 'accepted' );
 		$options          = '';
 
@@ -214,17 +213,18 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 					<abbr class="required" title="required">*</abbr>
 				</label>
 				<select name="%2$s" id="%2$s_coin">
-				<option>%4$s</option>
+				<option value="0">%4$s</option>
 					%3$s
 				</select>
-				<div id="payger_convertion">%5$s <span class="payger_amount"></span> %6$s <span class="payger_rate"></span></div>
+				<div id="payger_convertion" class="hide">%5$s <span class="payger_amount"></span> %6$s <span class="payger_rate"></span> = 1 %7$s</div>
 			</p>',
 				__( 'Choose Currency', 'payger' ),
 				$this->id,
 				$options,
 				__( 'Please choose one...' , 'payger' ),
 				__('You will pay', 'payger'),
-				__('at rate', 'payger')
+				__('at rate', 'payger'),
+				esc_html( $selling_currency )
 			);
 		}
 	}
