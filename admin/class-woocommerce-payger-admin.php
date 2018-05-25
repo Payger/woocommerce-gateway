@@ -111,7 +111,13 @@ class Woocommerce_Payger_Admin {
 
 	}
 
-	//Given a cryptocurrency get it's exchange rates
+
+	/**
+	 * Given a cryptocurrency get it's exchange rates
+	 *
+	 * @since 1.0.0
+	 * @author Ana Aires ( ana@widgilabs.com )
+	 */
 	public function get_quote() {
 
 		if ( ! isset( $_GET['to'] ) ) {
@@ -129,7 +135,6 @@ class Woocommerce_Payger_Admin {
 		$result = $result[0]; //I am interested in a single quote
 		$rate   = $result->rate;
 		$amount = $result->amount;
-
 
 		wp_send_json_success( array('rate' => $rate, 'amount'=> $amount ) );
 

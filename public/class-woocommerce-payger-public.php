@@ -75,7 +75,9 @@ class Woocommerce_Payger_Public {
 		//these are scripts we only need on checkout so enqueue them only on checkout page
 		if( is_checkout() ) {
 
-			wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/woocommerce-gateway-payger-public.js', array( 'jquery' ), $this->version, true );
+			wp_enqueue_script( 'jquery-ui-dialog' );
+			wp_enqueue_style( 'wp-jquery-ui-dialog' );
+			wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/woocommerce-gateway-payger-public.js', array( 'jquery', 'jquery-ui-dialog' ), $this->version, true );
 
 			//localize script
 			$ajax_nonce = wp_create_nonce( "payger" );
