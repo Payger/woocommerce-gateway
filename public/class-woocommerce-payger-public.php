@@ -96,13 +96,15 @@ class Woocommerce_Payger_Public {
 		$order  = new WC_Order( $order_id );
 		$qrCode = $order->get_meta('payger_qrcode');
 
+		$message = apply_filters( 'payger_thankyou_previous_qrCode', _('Please use the following qrCode to process your payment.', 'payger') );
+
 		if( $qrCode ) {
 
 			printf( '<p>%3$s</p>
 					 <p><img src="data:image/%2$s;base64,%1$s" alt="Payger qrCode"></p>',
 				$qrCode->content,
 				$qrCode->fileType,
-				_('Please use the following qrCode to process your payment.')
+				esc_html( $message )
 			);
 		}
 	}
