@@ -55,6 +55,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		$key    = $this->get_option( 'key' );
 		$secret = $this->get_option( 'secret' );
 
+		error_log('PASSEI AQUI   ');
 		$payger = new Payger();
 		$payger->setPassword( $secret );
 		$payger->setUsername( $key );
@@ -168,6 +169,11 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		$response = $this->payger->get( 'merchants/exchange-rates', array('from' => $selling_currency ) );
 
+
+	//	error_log('ACCEPTED CURRENCIES RESPONSE ');
+	//	error_log(print_r( $response, true ) );
+
+
 		$currencies = array();
 
 		if ( $rates = $response['data']->content->rates ) {
@@ -253,9 +259,21 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		error_log( 'Process Payment with Payger' );
 
+		$amount   = WC()->cart->cart_contents_total;
+		$asset    = $_POST['payger_gateway'];
+
+
+		$response = $this->payger->post( 'merchants/payments/', array( 'asset' => $asset, 'amount' => $amount, 'externalId' => $order_id ) );
+
+		$qrCode = $response['data']->content->qrCode;
+
+		$order->add_meta_data( 'payger_qrcode', $qrCode );
+
 
 		// Reduce stock levels
 		$order->reduce_order_stock();
+
+		$order->save();
 
 		// Remove cart
 		$woocommerce->cart->empty_cart();

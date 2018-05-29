@@ -12,6 +12,8 @@
         //Change currency
         $('#payger_gateway_coin').change(function () {
 
+            console.log(' CHANGE payger_gateway_coin ');
+
             $choosen_currency = $(this).val();
             var $form         = $('.woocommerce-checkout');
 

@@ -161,6 +161,8 @@ class Woocommerce_Payger {
 		add_action( 'wp_enqueue_scripts', array( $plugin_public, 'enqueue_styles' ) );
 		add_action( 'wp_enqueue_scripts', array( $plugin_public, 'enqueue_scripts' ) );
 
+		add_action( 'woocommerce_thankyou_payger_gateway', array( $plugin_public, 'update_thank_you' ), 10, 1 );
+
 	}
 
 	/**

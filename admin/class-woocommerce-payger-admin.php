@@ -106,7 +106,6 @@ class Woocommerce_Payger_Admin {
 
 		require_once  plugin_dir_path(__DIR__ ) . '/includes/class-woocommerce-payger-gateway.php';
 
-
 		$this->payger = new Woocommerce_Payger_Gateway( );
 
 	}
