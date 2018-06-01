@@ -139,4 +139,35 @@ class Woocommerce_Payger_Admin {
 
 	}
 
+
+	public function update_email_instructions( $order, $sent_to_admin, $plain_text ) {
+
+		if ( $sent_to_admin ) {
+			return; //admin gets the email no need to give him payment details
+		}
+
+		$payment_method = $order->get_payment_method();
+		error_log('PAYMENT METHOD');
+		error_log( $payment_method );
+
+		if ( 'payger_gateway' !== $payment_method ) {
+			return; //we only want to proceed if this is an order payed with payger
+		}
+
+		$qrCode = $order->get_meta('payger_qrcode');
+
+		$message = apply_filters( 'payger_thankyou_previous_qrCode', _('Please use the following qrCode to process your payment.', 'payger') );
+
+		if( $qrCode ) {
+
+			printf( '<p>%3$s</p>
+					 <p><img src="data:image/%2$s;base64,%1$s" alt="Payger qrCode"></p>',
+				$qrCode->content,
+				$qrCode->fileType,
+				esc_html( $message )
+			);
+		}
+
+	}
+
 }

@@ -91,12 +91,21 @@ class Woocommerce_Payger_Public {
 		}
 	}
 
+	/**
+	 * Given an order id shows qrCode on thank you page so that
+	 * users can perform payment.
+	 * This runs only when Payger was the choosen payment method
+	 * @param $order_id
+	 *
+	 * @since 1.0.0
+	 * @author Ana Aires ( ana@widgilabs.com )
+	 */
 	public function update_thank_you( $order_id ) {
 
 		$order  = new WC_Order( $order_id );
 		$qrCode = $order->get_meta('payger_qrcode');
 
-		$message = apply_filters( 'payger_thankyou_previous_qrCode', _('Please use the following qrCode to process your payment.', 'payger') );
+		$message = apply_filters( 'payger_thankyou_previous_qrCode', __('Please use the following qrCode to process your payment.', 'payger') );
 
 		if( $qrCode ) {
 
