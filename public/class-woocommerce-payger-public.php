@@ -72,8 +72,21 @@ class Woocommerce_Payger_Public {
 	 */
 	public function enqueue_scripts() {
 
-		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/woocommerce-gateway-payger-public.js', array( 'jquery' ), $this->version, false );
+		//these are scripts we only need on checkout so enqueue them only on checkout page
+		if( is_checkout() ) {
 
+			wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/woocommerce-gateway-payger-public.js', array( 'jquery' ), $this->version, true );
+
+			//localize script
+			$ajax_nonce = wp_create_nonce( "payger" );
+			$vars_array = array(
+				'ajaxurl' => admin_url( 'admin-ajax.php' ),
+				'nonce'	 	=> $ajax_nonce,
+			);
+
+			wp_localize_script( $this->plugin_name, 'payger', $vars_array );
+
+		}
 	}
 
 }

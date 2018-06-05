@@ -41,23 +41,22 @@ Class Payger {
 	 */
 	public function getNewAuthToken()
 	{
-
 		$obj = array(
 			'grant_type' => 'password',
-			'username' => $this->username,
-			'password' => $this->password,
+			'username'   => $this->username,
+			'password'   => $this->password,
 		);
 
 		$response = Payger::exec( 'POST', 'oauth/token', $obj );
 
 
 		$token = false;
-		if( isset( $response['data'] ) ) {
+		if ( isset( $response['data'] ) ) {
 			$response = $response['data'];
-			$token = $response->access_token;
+			$token    = $response->access_token;
 		}
 
-		error_log('TOKEN '.$token);
+		// error_log('TOKEN '.$token);
 
 		return $token;
 	}
@@ -71,11 +70,20 @@ Class Payger {
 	 */
 	public function connect()
     {
+
+	    // if we do have a valid token no need to
+	    // get new one
+	    if ( $this->check() ) {
+		    error_log('TENHO VALID TOKEN');
+		    return true;
+	    }
+
+
 	    $token = $this->getNewAuthToken();
-	    if (!$token) {
+	    if ( ! $token ) {
 		    return false;
 	    }
-	    self::setToken($token);
+	    self::setToken( $token );
 
 	    return true;
     }
@@ -88,7 +96,7 @@ Class Payger {
 	 */
 	public function check()
 	{
-		if(!$this->token)
+		if( ! self::$_token )
 			return false;
 		return true;
 	}
