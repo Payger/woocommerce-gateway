@@ -29,6 +29,11 @@
  */
 class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
+	/*
+	 * Payger instance so we can process requests
+	*/
+	protected $payger = null;
+
 	/**
 	 * Initialize the class and set its properties.
 	 *
@@ -38,27 +43,38 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 	 */
 	public function __construct( )
 	{
+		require_once( 'Payger.php' );
+
+
+
 		$this->id                 = 'payger_gateway';
 		$this->icon               = 'https://payger.com/wp-content/themes/payger/images/logo.png';
 		$this->has_fields         = true;
 		$this->method_title       = 'Payger';
 		$this->method_description = __( 'Pay with bitcoins brought to you by Payger', 'payger' );
 
+
+		$key    = $this->get_option( 'key' );
+		$secret = $this->get_option( 'secret' );
+
+		$payger = new Payger();
+		$payger->setPassword( $secret );
+		$payger->setUsername( $key );
+		$payger->connect();
+
+		$this->payger = $payger;
+
+
 		// Load the settings.
 		$this->init_form_fields();
 		$this->init_settings();
 
 		// Define user set variables
-		$this->title        = $this->get_option( 'title' );
-		$this->description  = $this->get_option( 'description' );
-		//$this->instructions = $this->get_option( 'instructions' );
-
+		$this->title       = $this->get_option( 'title' );
+		$this->description = $this->get_option( 'description' );
 
 		//This will save our settings
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
-
-		require_once( 'PaygerRequest.php' );
-
 	}
 
 	/**
@@ -101,7 +117,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			'description' => array(
 				'title'       => __( 'Description', 'payger' ),
 				'type'        => 'text',
-				'default'     => '',
+				'default'     => __( 'Pay with cryptocurrency provided by Payger', 'payger' ),
 				'description' => __( 'This controls the description which the user sees during checkout.', 'payger' ),
 				'desc_tip'    => true,
 			),
@@ -113,13 +129,48 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			),
 			'secret'      => array(
 				'title'       => __( 'Password', 'payger' ),
-				'type'        => 'text',
+				'type'        => 'password',
 				'description' => __( 'Secret provided by Payger when signing the contract.', 'payger' ),
 				'desc_tip'    => true,
+			),
+			'advanced' => array(
+				'title'       => __( 'Advanced options', 'payger' ),
+				'type'        => 'title',
+				'description' => '',
+			),
+			'accepted' => array(
+				'title'       => __( 'Accepted Currencies', 'payger' ),
+				'type'        => 'multiselect',
+				'class'       => 'wc-enhanced-select',
+				'description' => __( 'Choose which are the currencies you will allow users to pay with. This depends on your shop currency choosen on Woocommerce General Options ', 'payger' ),
+				'default'     => 'bitcoin',
+				'desc_tip'    => true,
+				'options'     => $this->get_accepted_currencies_options(),
 			),
 		);
 	}
 
+
+	public function get_accepted_currencies_options() {
+
+
+		$selling_currency = get_option('woocommerce_currency');
+
+		$response = $this->payger->get( 'merchants/exchange-rates', array('from' => $selling_currency ) );
+
+		error_log('RESPONSE ');
+
+
+		$rates = $response['data']->content->rates;
+
+		$currencies = array();
+		foreach( $rates as $rate ) {
+
+			$currencies[ $rate->asset ] = $rate->asset;
+		}
+
+		return $currencies;
+	}
 
 	/**
 	 * Form to output on checkout
@@ -142,7 +193,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		<p class="form-row form-row-wide">
 			<br/>
 			<label for="<?php echo $this->id; ?>">
-				<?php _e( 'Choose Currenty', 'payger' ); ?>
+				<?php _e( 'Choose Currency', 'payger' ); ?>
 				<abbr class="required" title="<?php _e( 'required', 'payger' ); ?>">*</abbr>
 			</label>
 			<input type="text" autocomplete="off" class="input-text" name="<?php echo $this->id; ?>" id="<?php echo $this->id; ?>" required/>
@@ -169,7 +220,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		error_log( 'Process Payment with Payger' );
 
 		$request = new PaygerRequest( 'sequences.get' );
-		$request->request();
+		$request->process_request();
 
 		//request payger
 
