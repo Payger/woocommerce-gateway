@@ -106,12 +106,17 @@ class Woocommerce_Payger_Admin {
 
 		require_once  plugin_dir_path(__DIR__ ) . '/includes/class-woocommerce-payger-gateway.php';
 
-
 		$this->payger = new Woocommerce_Payger_Gateway( );
 
 	}
 
-	//Given a cryptocurrency get it's exchange rates
+
+	/**
+	 * Given a cryptocurrency get it's exchange rates
+	 *
+	 * @since 1.0.0
+	 * @author Ana Aires ( ana@widgilabs.com )
+	 */
 	public function get_quote() {
 
 		if ( ! isset( $_GET['to'] ) ) {
@@ -130,8 +135,38 @@ class Woocommerce_Payger_Admin {
 		$rate   = $result->rate;
 		$amount = $result->amount;
 
-
 		wp_send_json_success( array('rate' => $rate, 'amount'=> $amount ) );
+
+	}
+
+
+	public function update_email_instructions( $order, $sent_to_admin, $plain_text ) {
+
+		if ( $sent_to_admin ) {
+			return; //admin gets the email no need to give him payment details
+		}
+
+		$payment_method = $order->get_payment_method();
+		error_log('PAYMENT METHOD');
+		error_log( $payment_method );
+
+		if ( 'payger_gateway' !== $payment_method ) {
+			return; //we only want to proceed if this is an order payed with payger
+		}
+
+		$qrCode = $order->get_meta('payger_qrcode');
+
+		$message = apply_filters( 'payger_thankyou_previous_qrCode', _('Please use the following qrCode to process your payment.', 'payger') );
+
+		if( $qrCode ) {
+
+			printf( '<p>%3$s</p>
+					 <p><img src="data:image/%2$s;base64,%1$s" alt="Payger qrCode"></p>',
+				$qrCode->content,
+				$qrCode->fileType,
+				esc_html( $message )
+			);
+		}
 
 	}
 

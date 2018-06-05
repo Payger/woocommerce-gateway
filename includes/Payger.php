@@ -18,13 +18,13 @@ Class Payger {
 	 * Variable: $username
 	 * Description:  A Payger User.
 	 */
-	private $username;
+	protected static $username;
 
 	/**
 	 * Variable: $password
 	 * Description:  The password for the $username Payger account
 	 */
-	private $password;
+	protected static $password;
 
 	/**
 	 * Variable: $token
@@ -32,19 +32,18 @@ Class Payger {
 	 */
 	protected static $_token;
 
-
 	/**
 	 * Function: getNewAuthToken
 	 * Parameters: none
 	 * Description: Retrieve access token from OAuth server
 	 * Returns: token on success, otherwise null
 	 */
-	public function getNewAuthToken()
+	public static function getNewAuthToken()
 	{
 		$obj = array(
 			'grant_type' => 'password',
-			'username'   => $this->username,
-			'password'   => $this->password,
+			'username'   => self::$username,
+			'password'   => self::$password,
 		);
 
 		$response = Payger::exec( 'POST', 'oauth/token', $obj );
@@ -56,8 +55,6 @@ Class Payger {
 			$token    = $response->access_token;
 		}
 
-		// error_log('TOKEN '.$token);
-
 		return $token;
 	}
 
@@ -68,18 +65,18 @@ Class Payger {
 	 * Returns:  TRUE on login success, otherwise FALSE
 	 *
 	 */
-	public function connect()
+	public static function connect()
     {
 
 	    // if we do have a valid token no need to
 	    // get new one
-	    if ( $this->check() ) {
+	    if ( self::check() ) {
 		    error_log('TENHO VALID TOKEN');
 		    return true;
 	    }
 
 
-	    $token = $this->getNewAuthToken();
+	    $token = self::getNewAuthToken();
 	    if ( ! $token ) {
 		    return false;
 	    }
@@ -94,7 +91,7 @@ Class Payger {
 	 * Description:  check if token is set
 	 * Returns:  TRUE on login success, otherwise FALSE
 	 */
-	public function check()
+	public static function check()
 	{
 		if( ! self::$_token )
 			return false;
@@ -155,16 +152,16 @@ Class Payger {
 
 	public static function exec($method, $endpoint, $obj = array()) {
 
+		error_log('METHOD ------------------------> '.$endpoint );
+
+
 		$url = 'https://merchant-api-{{ ENV }}.payger.com/api/v1/{{ CLASS }}'; //FIXME Payger::getUrl()
 		$url = str_replace( '{{ ENV }}', 'test', $url ); //TODO change this dinamically
 		$url = str_replace( '{{ CLASS }}', $endpoint, $url );
 
-
 		$curl = curl_init();
 
-		$post_data = "grant_type=password&username=key8&password=O5pCmkzuQx";
-
-		switch($method) {
+		switch( $method ) {
 			case 'GET':
 				if(strrpos($url, "?") === FALSE) {
 					$url .= '?' . http_build_query($obj);
@@ -191,28 +188,35 @@ Class Payger {
 		curl_setopt( $curl, CURLOPT_MAXREDIRS, 10 );
 		curl_setopt( $curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1 );
 		curl_setopt( $curl, CURLOPT_CUSTOMREQUEST, strtoupper($method) );
-		if( $post_data ) {
-			curl_setopt($curl, CURLOPT_POSTFIELDS, $post_data); ///json_encode($obj)
-		}
+
+		curl_setopt($curl, CURLOPT_HEADER, TRUE);
+		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, TRUE);
+
 
 		if ( 'oauth/token' == $endpoint ) {
+
+			$post_data = "grant_type=password&username=key8&password=O5pCmkzuQx";
+
+			curl_setopt($curl, CURLOPT_POSTFIELDS, $post_data);
 			curl_setopt($curl, CURLOPT_HTTPHEADER, array(
 					"authorization: Basic Y2xpZW50MTpTRkRQZzU3YlZKWXliV1px",
 					"cache-control: no-cache",
 					"content-type: application/x-www-form-urlencoded",
 				));
 		} else {
+
+			$post_data = http_build_query($obj);
+
+//			$obj = "externalId=43&asset=bitcoin&amount=15.00";
+
 			curl_setopt( $curl, CURLOPT_HTTPHEADER, array(
 				"authorization: Bearer " . self::$_token,
 				"cache-control: no-cache",
-				"content-type: application/json",
+				"content-type: application/json"
 			) );
+
+			curl_setopt( $curl, CURLOPT_POSTFIELDS, json_encode( $obj ) );
 		}
-
-
-		//new
-		curl_setopt($curl, CURLOPT_HEADER, TRUE);
-		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, TRUE);
 
 		// Exec
 		$response = curl_exec($curl);

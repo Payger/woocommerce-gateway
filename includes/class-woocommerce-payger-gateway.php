@@ -55,6 +55,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		$key    = $this->get_option( 'key' );
 		$secret = $this->get_option( 'secret' );
 
+		error_log('PASSEI AQUI   ');
 		$payger = new Payger();
 		$payger->setPassword( $secret );
 		$payger->setUsername( $key );
@@ -168,6 +169,11 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		$response = $this->payger->get( 'merchants/exchange-rates', array('from' => $selling_currency ) );
 
+
+	//	error_log('ACCEPTED CURRENCIES RESPONSE ');
+	//	error_log(print_r( $response, true ) );
+
+
 		$currencies = array();
 
 		if ( $rates = $response['data']->content->rates ) {
@@ -209,22 +215,28 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		if( ! empty( $options ) ) {
 			printf(
 				'<p class="form-row form-row-wide">
-				<label for="<?php echo $this->id; ?>">%1$s
-					<abbr class="required" title="required">*</abbr>
-				</label>
-				<select name="%2$s" id="%2$s_coin">
-				<option value="0">%4$s</option>
-					%3$s
-				</select>
-				<div id="payger_convertion" class="hide">%5$s <span class="payger_amount"></span> %6$s <span class="payger_rate"></span> = 1 %7$s</div>
-			</p>',
+					<label for="<?php echo $this->id; ?>">%1$s
+						<abbr class="required" title="required">*</abbr>
+					</label>
+					<select name="%2$s" id="%2$s_coin">
+					<option value="0">%4$s</option>
+						%3$s
+					</select>
+					<div id="payger_convertion" class="hide">%5$s <span class="payger_amount"></span> %6$s <span class="payger_rate"></span> = 1 %7$s</div>
+				</p>
+				<div class="hide" id="dialog" title="Payger Confirmation">
+  					<p>%8$s <span class="update_amount"></span> %9$s <span class="update_rate"></span> = 1 %7$s %10$s</p>
+				</div>',
 				__( 'Choose Currency', 'payger' ),
 				$this->id,
 				$options,
 				__( 'Please choose one...' , 'payger' ),
 				__('You will pay', 'payger'),
 				__('at rate', 'payger'),
-				esc_html( $selling_currency )
+				esc_html( $selling_currency ),
+				__( 'Your currency rate was recently updated. You will pay a total amount of', 'payger' ),
+				__( 'corresponding to a rate of', 'payger' ),
+				__( 'Please confirm you want to proceed with your order.', 'payger' )
 			);
 		}
 	}
@@ -247,14 +259,24 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		error_log( 'Process Payment with Payger' );
 
-		$request = new PaygerRequest( 'sequences.get' );
-		$request->process_request();
+		$amount   = WC()->cart->cart_contents_total;
+		$asset    = $_POST['payger_gateway'];
 
-		//request payger
+
+		$response = $this->payger->post( 'merchants/payments/', array( 'asset' => $asset, 'amount' => $amount, 'externalId' => $order_id ) );
+
+		error_log('RESPONSE');
+		error_log( print_r( $response, true ) );
+
+		$qrCode = $response['data']->content->qrCode;
+
+		$order->add_meta_data( 'payger_qrcode', $qrCode );
 
 
 		// Reduce stock levels
 		$order->reduce_order_stock();
+
+		$order->save();
 
 		// Remove cart
 		$woocommerce->cart->empty_cart();
