@@ -1,32 +1,80 @@
 (function( $ ) {
 	'use strict';
+    //needed since payment options are added to the DOM after the document ready
+    jQuery(document).ajaxComplete(function () {
 
-	/**
-	 * All of the code for your public-facing JavaScript source
-	 * should reside in this file.
-	 *
-	 * Note: It has been assumed you will write jQuery code here, so the
-	 * $ function reference has been prepared for usage within the scope
-	 * of this function.
-	 *
-	 * This enables you to define handlers, for when the DOM is ready:
-	 *
-	 * $(function() {
-	 *
-	 * });
-	 *
-	 * When the window is loaded:
-	 *
-	 * $( window ).load(function() {
-	 *
-	 * });
-	 *
-	 * ...and/or other possibilities.
-	 *
-	 * Ideally, it is not considered best practise to attach more than a
-	 * single DOM-ready or window-load handler for a particular page.
-	 * Although scripts in the WordPress core, Plugins and Themes may be
-	 * practising this, we should strive to set a better example in our own work.
-	 */
+        //Change currency
+        $('#payger_gateway_coin').change(function () {
+
+            var $choosen_currency = $(this).val();
+            var $form             = $('.woocommerce-checkout');
+
+            //hides convertion rates from previous currency
+            $('#payger_convertion').addClass('hide');
+
+            if( 0 == $choosen_currency ) {
+                return;
+            }
+
+            //get current rates for this currency
+            $.ajax({
+
+                cache: false,
+                timeout: 3000,
+                url: payger.ajaxurl,
+                type: "get",
+                data: ({
+                    nonce:payger.nonce,
+                    action:'payger_get_quote',
+                    to: $choosen_currency,
+                }),
+
+                beforeSend: function() {
+
+                   //init loading
+                    $form.block({
+                        message: null,
+                        overlayCSS: {
+                            background: '#fff',
+                            opacity: 0.6
+                        }
+                    });
+                },
+
+                success: function( response, textStatus, jqXHR ){
+
+                    var rate = response.data.rate;
+                    var amount = response.data.amount;
+
+
+                    console.log( 'RESPONSE -> ' );
+                    console.log( rate );
+                    console.log( amount );
+
+                    $('.payger_amount').html( amount );
+                    $('.payger_rate').html( rate );
+
+                    setTimeout(function(){
+                        $('#payger_convertion').removeClass('hide');
+                    }, 500);
+
+
+                    $form.unblock();
+
+
+                },
+
+                error: function( jqXHR, textStatus, errorThrown ){
+                    console.log( 'The following error occured: ' + textStatus, errorThrown );
+                },
+
+                complete: function( jqXHR, textStatus ){
+                }
+
+            });
+
+        });
+
+    });
 
 })( jQuery );

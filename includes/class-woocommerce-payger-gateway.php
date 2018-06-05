@@ -45,8 +45,6 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 	{
 		require_once( 'Payger.php' );
 
-
-
 		$this->id                 = 'payger_gateway';
 		$this->icon               = 'https://payger.com/wp-content/themes/payger/images/logo.png';
 		$this->has_fields         = true;
@@ -75,6 +73,10 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		//This will save our settings
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
+	}
+
+	public function get_instance(){
+		return $this->payger;
 	}
 
 	/**
@@ -170,7 +172,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		if ( $rates = $response['data']->content->rates ) {
 			foreach ( $rates as $rate ) {
-				$currencies[ $rate->asset ] = $rate->asset;
+				$currencies[ $rate->asset ] = ucfirst( $rate->asset );
 			}
 		}
 
@@ -184,8 +186,6 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 	 */
 	public function payment_fields() {
 
-		$description = $this->get_description();
-
 		/*if ( 'yes' == $this->sandbox ) {
 			$description .= ' ' . sprintf( __( 'TEST MODE ENABLED. Use a test card: %s', 'woocommerce' ), '<a href="https://www.simplify.com/commerce/docs/tutorial/index#testing">https://www.simplify.com/commerce/docs/tutorial/index#testing</a>' );
 		}*/
@@ -194,15 +194,15 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			echo wpautop( wptexturize( trim( $description ) ) );
 		}
 
-		error_log('THIs GET OPTIO');
-		error_log(print_r($this->get_option('accepted'), true));
-
+		$selling_currency = get_option('woocommerce_currency');
 		$currency_options = $this->get_option( 'accepted' );
 		$options          = '';
 
 		if ( $currency_options && ! empty( $currency_options ) ) {
 			foreach ( $currency_options as $option ) {
-				$options .= sprintf( '<option value="%1$s">%1$s</option>', $option );
+				$options .= sprintf( '<option value="%1$s">%2$s</option>',
+					$option,
+					ucfirst( $option ) );
 			}
 		}
 
@@ -212,13 +212,19 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 				<label for="<?php echo $this->id; ?>">%1$s
 					<abbr class="required" title="required">*</abbr>
 				</label>
-				<select name="%2$s" id="%2$s">
+				<select name="%2$s" id="%2$s_coin">
+				<option value="0">%4$s</option>
 					%3$s
 				</select>
+				<div id="payger_convertion" class="hide">%5$s <span class="payger_amount"></span> %6$s <span class="payger_rate"></span> = 1 %7$s</div>
 			</p>',
 				__( 'Choose Currency', 'payger' ),
 				$this->id,
-				$options
+				$options,
+				__( 'Please choose one...' , 'payger' ),
+				__('You will pay', 'payger'),
+				__('at rate', 'payger'),
+				esc_html( $selling_currency )
 			);
 		}
 	}
