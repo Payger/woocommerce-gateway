@@ -147,16 +147,18 @@ class Woocommerce_Payger_Admin {
 		}
 
 		$payment_method = $order->get_payment_method();
-		error_log('PAYMENT METHOD');
-		error_log( $payment_method );
-
 		if ( 'payger_gateway' !== $payment_method ) {
 			return; //we only want to proceed if this is an order payed with payger
 		}
 
-		$qrCode = $order->get_meta('payger_qrcode');
+		if( ! $order->has_status( 'on-hold' ) )
+		{
+			return; //order not on-hold
+		}
 
-		$message = apply_filters( 'payger_thankyou_previous_qrCode', _('Please use the following qrCode to process your payment.', 'payger') );
+		$qrCode  = $order->get_meta( 'payger_qrcode' );
+		
+		$message = apply_filters( 'payger_thankyou_previous_qrCode', __('Please use the following qrCode to process your payment.', 'payger') );
 
 		if( $qrCode ) {
 
@@ -169,5 +171,4 @@ class Woocommerce_Payger_Admin {
 		}
 
 	}
-
 }
