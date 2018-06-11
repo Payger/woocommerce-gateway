@@ -71,7 +71,7 @@ Class Payger {
 	    // if we do have a valid token no need to
 	    // get new one
 	    if ( self::check() ) {
-		    error_log('TENHO VALID TOKEN');
+		    //error_log('TENHO VALID TOKEN');
 		    return true;
 	    }
 
@@ -152,7 +152,7 @@ Class Payger {
 
 	public static function exec($method, $endpoint, $obj = array()) {
 
-		error_log('METHOD ------------------------> '.$endpoint );
+	//	error_log('METHOD ------------------------> '.$endpoint );
 
 
 		$url = 'https://merchant-api-{{ ENV }}.payger.com/api/v1/{{ CLASS }}'; //FIXME Payger::getUrl()
@@ -178,7 +178,7 @@ Class Payger {
 				break;
 		}
 
-		error_log('URL '.$url);
+	//	error_log('URL '.$url);
 
 
 		curl_setopt( $curl, CURLOPT_URL, $url );

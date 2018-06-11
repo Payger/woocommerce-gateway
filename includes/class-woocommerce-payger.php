@@ -145,6 +145,8 @@ class Woocommerce_Payger {
 		add_action( 'wp_ajax_payger_get_quote', array( $plugin_admin, 'get_quote' ) );
 		add_action( 'wp_ajax_nopriv_payger_get_quote', array( $plugin_admin, 'get_quote' ) );
 
+		add_action( 'woocommerce_email_before_order_table', array( $plugin_admin, 'update_email_instructions' ), 999, 3 );
+
 	}
 
 	/**
