@@ -140,6 +140,11 @@ class Woocommerce_Payger_Admin {
 	}
 
 
+
+	/*
+	 * Updates Email on hold to user with qrcode instructions if payment was
+	 * made through payger
+	 */
 	public function update_email_instructions( $order, $sent_to_admin, $plain_text ) {
 
 		if ( $sent_to_admin ) {
@@ -170,5 +175,45 @@ class Woocommerce_Payger_Admin {
 			);
 		}
 
+	}
+
+	/**
+	 * Listens to Payger Callback
+	 * @since 1.0.0
+	 * @author Ana Aires ( ana@widgilabs.com )
+	 */
+	public function check_payger_response() {
+
+		//id must be set with the payment identifier
+		if ( ! isset( $_POST['id'] ) ) {
+
+			wp_die( 'Payger IPN Request Failure', 'Payger IPN', array( 'response' => 500 ) );
+		}
+
+		$payment_id = $_POST['id'];
+
+		//perform request check status
+		$payger_instance  = $this->payger->get_instance();
+		$response         = $payger_instance->get( 'merchants/payments/' . $payment_id );
+
+		$result = $response['data']->content;
+		
+		if ( is_object( $result ) ) {
+
+			$order_id = $result->externalId; // external id was set with order id when payment was issued
+			$order    = new WC_Order( $order_id );
+
+			if ( 'PAID' === $result->status ) {
+
+				//get order with this payment id
+
+				// update order status to 'processing' payment was confirmed
+				$order->update_status( 'processing', __( 'Payger Payment Confirmed', 'payger' ) );
+
+			} else {
+
+				$order->add_order_note( __('Still Waiting for Payment', 'payger' ) );
+			}
+		}
 	}
 }
