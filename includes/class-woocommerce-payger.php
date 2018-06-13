@@ -146,6 +146,9 @@ class Woocommerce_Payger {
 		add_action( 'wp_ajax_nopriv_payger_get_quote', array( $plugin_admin, 'get_quote' ) );
 
 		add_action( 'woocommerce_email_before_order_table', array( $plugin_admin, 'update_email_instructions' ), 10, 3 );
+
+		//FIXME pode não estar inicializado quando o callback corre...
+		add_action( 'woocommerce_api_wc_gateway_payger', array( $plugin_admin, 'check_payger_response' ) );
 	}
 
 	/**
