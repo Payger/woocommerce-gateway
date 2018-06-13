@@ -75,7 +75,9 @@ class Woocommerce_Payger_Public {
 		//these are scripts we only need on checkout so enqueue them only on checkout page
 		if( is_checkout() ) {
 
-			wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/woocommerce-gateway-payger-public.js', array( 'jquery' ), $this->version, true );
+			wp_enqueue_script( 'jquery-ui-dialog' );
+			wp_enqueue_style( 'wp-jquery-ui-dialog' );
+			wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/woocommerce-gateway-payger-public.js', array( 'jquery', 'jquery-ui-dialog' ), $this->version, true );
 
 			//localize script
 			$ajax_nonce = wp_create_nonce( "payger" );
@@ -86,6 +88,33 @@ class Woocommerce_Payger_Public {
 
 			wp_localize_script( $this->plugin_name, 'payger', $vars_array );
 
+		}
+	}
+
+	/**
+	 * Given an order id shows qrCode on thank you page so that
+	 * users can perform payment.
+	 * This runs only when Payger was the choosen payment method
+	 * @param $order_id
+	 *
+	 * @since 1.0.0
+	 * @author Ana Aires ( ana@widgilabs.com )
+	 */
+	public function update_thank_you( $order_id ) {
+
+		$order  = new WC_Order( $order_id );
+		$qrCode = $order->get_meta('payger_qrcode');
+
+		$message = apply_filters( 'payger_thankyou_previous_qrCode', __('Please use the following qrCode to process your payment.', 'payger') );
+
+		if( $qrCode ) {
+
+			printf( '<p>%3$s</p>
+					 <p><img src="data:image/%2$s;base64,%1$s" alt="Payger qrCode"></p>',
+				$qrCode->content,
+				$qrCode->fileType,
+				esc_html( $message )
+			);
 		}
 	}
 

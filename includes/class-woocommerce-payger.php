@@ -145,6 +145,9 @@ class Woocommerce_Payger {
 		add_action( 'wp_ajax_payger_get_quote', array( $plugin_admin, 'get_quote' ) );
 		add_action( 'wp_ajax_nopriv_payger_get_quote', array( $plugin_admin, 'get_quote' ) );
 
+		add_action( 'woocommerce_email_before_order_table', array( $plugin_admin, 'update_email_instructions' ), 10, 3 );
+
+
 	}
 
 	/**
@@ -160,6 +163,8 @@ class Woocommerce_Payger {
 
 		add_action( 'wp_enqueue_scripts', array( $plugin_public, 'enqueue_styles' ) );
 		add_action( 'wp_enqueue_scripts', array( $plugin_public, 'enqueue_scripts' ) );
+
+		add_action( 'woocommerce_thankyou_payger_gateway', array( $plugin_public, 'update_thank_you' ), 10, 1 );
 
 	}
 
