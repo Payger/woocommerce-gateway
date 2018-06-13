@@ -277,6 +277,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		// Mark as on-hold (we're awaiting the cheque)
 		$order->update_status( 'on-hold', __( 'Awaiting Payger payment', 'payger' ) );
+		$order->add_order_note( __('DEBUG PAYMENT ID', 'payger' ) );
 
 		// Reduce stock levels
 		$order->reduce_order_stock();
