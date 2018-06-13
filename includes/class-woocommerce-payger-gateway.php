@@ -55,7 +55,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		$key    = $this->get_option( 'key' );
 		$secret = $this->get_option( 'secret' );
 
-		error_log('PASSEI AQUI   ');
+		//error_log('PASSEI AQUI   ');
 		$payger = new Payger();
 		$payger->setPassword( $secret );
 		$payger->setUsername( $key );
@@ -253,12 +253,6 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		global $woocommerce;
 		$order = new WC_Order( $order_id );
 
-		// Mark as on-hold (we're awaiting the cheque)
-		$order->update_status('on-hold', __( 'Awaiting Payger payment', 'payger' ));
-
-
-		error_log( 'Process Payment with Payger' );
-
 		$amount   = WC()->cart->cart_contents_total;
 		$asset    = $_POST['payger_gateway'];
 
@@ -270,8 +264,12 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		$qrCode = $response['data']->content->qrCode;
 
+		$order->add_meta_data( 'payger_currency', $asset );
+		$order->add_meta_data( 'payger_ammount', $amount );
 		$order->add_meta_data( 'payger_qrcode', $qrCode );
 
+		// Mark as on-hold (we're awaiting the cheque)
+		$order->update_status('on-hold', __( 'Awaiting Payger payment', 'payger' ));
 
 		// Reduce stock levels
 		$order->reduce_order_stock();
