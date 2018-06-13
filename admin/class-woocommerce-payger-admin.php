@@ -140,10 +140,15 @@ class Woocommerce_Payger_Admin {
 	}
 
 
-
-	/*
-	 * Updates Email on hold to user with qrcode instructions if payment was
-	 * made through payger
+	/***
+	 * When order changes status to on-hold and user is notified info
+	 * to make the payment (qrCode) is added to the email
+	 * @param $order
+	 * @param $sent_to_admin
+	 * @param $plain_text
+	 *
+	 * @since 1.0.0
+	 * @author Ana Aires ( ana@widgilabs.com )
 	 */
 	public function update_email_instructions( $order, $sent_to_admin, $plain_text ) {
 
@@ -152,6 +157,7 @@ class Woocommerce_Payger_Admin {
 		}
 
 		$payment_method = $order->get_payment_method();
+
 		if ( 'payger_gateway' !== $payment_method ) {
 			return; //we only want to proceed if this is an order payed with payger
 		}
@@ -162,7 +168,6 @@ class Woocommerce_Payger_Admin {
 		}
 
 		$qrCode  = $order->get_meta( 'payger_qrcode' );
-		
 		$message = apply_filters( 'payger_thankyou_previous_qrCode', __('Please use the following qrCode to process your payment.', 'payger') );
 
 		if( $qrCode ) {
