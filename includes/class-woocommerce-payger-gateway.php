@@ -259,6 +259,9 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		$response = $this->payger->post( 'merchants/payments/', array( 'asset' => $asset, 'amount' => $amount, 'externalId' => $order_id ) );
 
+		error_log('RESPONSE');
+		error_log( print_r( $response, true ) );
+
 		$qrCode = $response['data']->content->qrCode;
 
 		$order->add_meta_data( 'payger_currency', $asset );
