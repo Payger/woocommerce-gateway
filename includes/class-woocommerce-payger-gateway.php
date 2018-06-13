@@ -257,16 +257,26 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		$asset    = $_POST['payger_gateway'];
 
 
-		$response = $this->payger->post( 'merchants/payments/', array( 'asset' => $asset, 'amount' => $amount, 'externalId' => $order_id ) );
+		$args = array (
+			'asset'      => $asset,
+			'amount'     => $amount,
+			'externalId' => $order_id,
+			'callback'   => array( 'url' => WC()->api_request_url( 'WC_Gateway_Payger' ), 'method' => 'POST' ),
+		);
 
-		$qrCode = $response['data']->content->qrCode;
+		$response = $this->payger->post( 'merchants/payments/', $args );
+
+
+		$qrCode     = $response['data']->content->qrCode;
+		$payment_id = $response['data']->content->id;
 
 		$order->add_meta_data( 'payger_currency', $asset );
 		$order->add_meta_data( 'payger_ammount', $amount );
 		$order->add_meta_data( 'payger_qrcode', $qrCode );
+		$order->add_meta_data( 'payger_payment_id', $payment_id );
 
 		// Mark as on-hold (we're awaiting the cheque)
-		$order->update_status('on-hold', __( 'Awaiting Payger payment', 'payger' ));
+		$order->update_status( 'on-hold', __( 'Awaiting Payger payment', 'payger' ) );
 
 		// Reduce stock levels
 		$order->reduce_order_stock();

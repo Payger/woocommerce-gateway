@@ -54,7 +54,6 @@ Class Payger {
 			$response = $response['data'];
 			$token    = $response->access_token;
 		}
-
 		return $token;
 	}
 
@@ -66,7 +65,8 @@ Class Payger {
 	 *
 	 */
 	public static function connect()
-    {
+    {  error_log('TOKEN');
+	    error_log(self::$_token);
 
 	    // if we do have a valid token no need to
 	    // get new one
@@ -81,7 +81,6 @@ Class Payger {
 		    return false;
 	    }
 	    self::setToken( $token );
-
 	    return true;
     }
 
