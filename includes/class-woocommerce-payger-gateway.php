@@ -264,6 +264,8 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			'callback'   => array( 'url' => WC()->api_request_url( 'WC_Gateway_Payger' ), 'method' => 'POST' ),
 		);
 
+		$order->add_order_note( __('DEBUG CALLBACK '.WC()->api_request_url( 'WC_Gateway_Payger' ), 'payger' ) );
+
 		$response = $this->payger->post( 'merchants/payments/', $args );
 
 
