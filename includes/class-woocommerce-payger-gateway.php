@@ -46,10 +46,10 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		require_once( 'Payger.php' );
 
 		$this->id                 = 'payger_gateway';
-		$this->icon               = 'https://payger.com/wp-content/themes/payger/images/logo.png';
+		$this->icon               = 'https://payger.com/wp-content/uploads/2018/03/logo_green-350x75.png';
 		$this->has_fields         = true;
-		$this->method_title       = 'Payger';
-		$this->method_description = __( 'Pay with bitcoins brought to you by Payger', 'payger' );
+		$this->method_title       = __( 'Pay with cryptocurrency (powered by Payger)', 'payger' );;
+		$this->method_description = __( 'Pay with cryptocurrency (powered by Payger)', 'payger' );
 
 
 		$key    = $this->get_option( 'key' );
@@ -78,6 +78,21 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 	public function get_instance(){
 		return $this->payger;
+	}
+
+	/**
+	 * Return the gateway's icon.
+	 *
+	 * @return string
+	 */
+	public function get_icon() {
+
+		$icon = $this->icon ? '<img src="' . WC_HTTPS::force_https_url( $this->icon ) . '" alt="' . esc_attr( $this->get_title() ) . '" />' : '';
+
+		$icon .= sprintf( '<a href="%1$s" class="about_paypal" target="_blank">' . esc_attr__( 'What is Payger?', 'payger' ) . '</a>', esc_url( 'http://www.payger.com' ) );
+
+
+		return apply_filters( 'woocommerce_gateway_icon', $icon, $this->id );
 	}
 
 	/**
@@ -196,6 +211,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			$description .= ' ' . sprintf( __( 'TEST MODE ENABLED. Use a test card: %s', 'woocommerce' ), '<a href="https://www.simplify.com/commerce/docs/tutorial/index#testing">https://www.simplify.com/commerce/docs/tutorial/index#testing</a>' );
 		}*/
 
+		$description = $this->method_description;
 		if ( $description ) {
 			echo wpautop( wptexturize( trim( $description ) ) );
 		}
