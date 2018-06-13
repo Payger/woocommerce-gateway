@@ -40,6 +40,12 @@ class Woocommerce_Payger_Admin {
 	 */
 	private $version;
 
+
+	/**
+	 * Payger Instance
+	 */
+	private $payger;
+
 	/**
 	 * Initialize the class and set its properties.
 	 *
@@ -101,7 +107,31 @@ class Woocommerce_Payger_Admin {
 		require_once  plugin_dir_path(__DIR__ ) . '/includes/class-woocommerce-payger-gateway.php';
 
 
-		new Woocommerce_Payger_Gateway( );
+		$this->payger = new Woocommerce_Payger_Gateway( );
+
+	}
+
+	//Given a cryptocurrency get it's exchange rates
+	public function get_quote() {
+
+		if ( ! isset( $_GET['to'] ) ) {
+			wp_send_json_error();
+		}
+
+		$selling_currency = get_option('woocommerce_currency');
+		$choosen_crypto   = $_GET['to'];
+		$amount           = WC()->cart->cart_contents_total;
+
+		$payger_instance  = $this->payger->get_instance();
+		$response         = $payger_instance->get( 'merchants/exchange-rates', array('from' => $selling_currency, 'to'=> $choosen_crypto, 'amount' => $amount ) );
+
+		$result = $response['data']->content->rates;
+		$result = $result[0]; //I am interested in a single quote
+		$rate   = $result->rate;
+		$amount = $result->amount;
+
+
+		wp_send_json_success( array('rate' => $rate, 'amount'=> $amount ) );
 
 	}
 

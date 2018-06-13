@@ -141,6 +141,10 @@ class Woocommerce_Payger {
 		add_action( 'plugins_loaded',               array( $plugin_admin, 'init_gateway') );
 		add_filter( 'woocommerce_payment_gateways', array( $plugin_admin, 'add_payger_gateway_class') );
 
+
+		add_action( 'wp_ajax_payger_get_quote', array( $plugin_admin, 'get_quote' ) );
+		add_action( 'wp_ajax_nopriv_payger_get_quote', array( $plugin_admin, 'get_quote' ) );
+
 	}
 
 	/**
