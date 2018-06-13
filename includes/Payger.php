@@ -65,9 +65,7 @@ Class Payger {
 	 *
 	 */
 	public static function connect()
-    {  error_log('TOKEN');
-	    error_log(self::$_token);
-
+    {
 	    // if we do have a valid token no need to
 	    // get new one
 	    if ( self::check() ) {
