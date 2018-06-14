@@ -185,11 +185,6 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		$response = $this->payger->get( 'merchants/exchange-rates', array('from' => $selling_currency ) );
 
-
-	//	error_log('ACCEPTED CURRENCIES RESPONSE ');
-	//	error_log(print_r( $response, true ) );
-
-
 		$currencies = array();
 
 		if ( $rates = $response['data']->content->rates ) {
@@ -208,14 +203,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 	 */
 	public function payment_fields() {
 
-		/*if ( 'yes' == $this->sandbox ) {
-			$description .= ' ' . sprintf( __( 'TEST MODE ENABLED. Use a test card: %s', 'woocommerce' ), '<a href="https://www.simplify.com/commerce/docs/tutorial/index#testing">https://www.simplify.com/commerce/docs/tutorial/index#testing</a>' );
-		}*/
-
 		$description = $this->description;
-
-
-		error_log('DESCRIPTION '.$description );
 
 		if ( $description ) {
 			echo wpautop( wptexturize( trim( $description ) ) );
