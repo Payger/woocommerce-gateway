@@ -168,6 +168,7 @@ class Woocommerce_Payger_Admin {
 		}
 
 		$qrCode  = $order->get_meta( 'payger_qrcode_image' );
+		
 		$message = apply_filters( 'payger_thankyou_previous_qrCode', __('Please use the following qrCode to process your payment.', 'payger') );
 
 		if( $qrCode ) {
