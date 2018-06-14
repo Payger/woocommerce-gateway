@@ -48,8 +48,9 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		$this->id                 = 'payger_gateway';
 		$this->icon               = 'https://payger.com/wp-content/uploads/2018/03/logo_green-350x75.png';
 		$this->has_fields         = true;
-		$this->method_title       = __( 'Pay with cryptocurrency (powered by Payger)', 'payger' );;
-		$this->method_description = __( 'Pay with cryptocurrency (powered by Payger)', 'payger' );
+		$this->method_title       = __( 'Payger', 'payger' );
+		$this->title       = __( 'Payger', 'payger' );
+		$this->description = __( 'Pay with cryptocurrency (powered by Payger)', 'payger' );
 
 
 		$key    = $this->get_option( 'key' );
@@ -211,7 +212,11 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			$description .= ' ' . sprintf( __( 'TEST MODE ENABLED. Use a test card: %s', 'woocommerce' ), '<a href="https://www.simplify.com/commerce/docs/tutorial/index#testing">https://www.simplify.com/commerce/docs/tutorial/index#testing</a>' );
 		}*/
 
-		$description = $this->method_description;
+		$description = $this->description;
+
+
+		error_log('DESCRIPTION '.$description );
+
 		if ( $description ) {
 			echo wpautop( wptexturize( trim( $description ) ) );
 		}
