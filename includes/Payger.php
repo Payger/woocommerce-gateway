@@ -197,7 +197,7 @@ Class Payger {
 
 			curl_setopt($curl, CURLOPT_POSTFIELDS, $post_data);
 			curl_setopt($curl, CURLOPT_HTTPHEADER, array(
-					"authorization: Basic Y2xpZW50MTpTRkRQZzU3YlZKWXliV1px",
+					"authorization: Basic a2V5ODpPNXBDbWt6dVF4",
 					"cache-control: no-cache",
 					"content-type: application/x-www-form-urlencoded",
 				));
