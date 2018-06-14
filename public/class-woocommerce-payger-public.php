@@ -107,8 +107,27 @@ class Woocommerce_Payger_Public {
 
 		$message = apply_filters( 'payger_thankyou_previous_qrCode', __('Please use the following qrCode to process your payment.', 'payger') );
 
-		if( $qrCode ) {
 
+		$data    = base64_decode( $qrCode->content );
+		$uploads = wp_upload_dir();
+
+		$upload_path = $uploads['basedir'];
+
+		// create temporary directory if does not exists
+		if( ! file_exists( $upload_path . '/payger_tmp' ) ) {
+			mkdir( $upload_path . '/payger_tmp' );
+		}
+
+		$filename = '/payger_tmp/'  . mktime().'.png';
+
+		if ( ! file_exists( $filename ) ) {
+			file_put_contents( $upload_path . $filename, $data );
+		}
+
+		//stores qrcode url so that email can use this.
+		$order->add_meta_data( 'payger_qrcode_image', $uploads['baseurl'] . $filename);
+
+		if ( $qrCode ) {
 			printf( '<p>%3$s</p>
 					 <p><img src="data:image/%2$s;base64,%1$s" alt="Payger qrCode"></p>',
 				$qrCode->content,
