@@ -286,16 +286,17 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		$data        = base64_decode( $qrCode->content );
 		$uploads     = wp_upload_dir();
 		$upload_path = $uploads['basedir'];
-		$filename    = '/payger_tmp/'  . mktime().'.png';
+		$filename    = '/payger_tmp/'  . $order_id .'.png';
 
 		// create temporary directory if does not exists
 		if( ! file_exists( $upload_path . '/payger_tmp' ) ) {
 			mkdir( $upload_path . '/payger_tmp' );
 		}
 
-		if ( ! file_exists( $filename ) ) {
-			file_put_contents( $upload_path . $filename, $data );
-		}
+		//always update file so that if qrcode changes for this
+		//payment the code is still valid
+		file_put_contents( $upload_path . $filename, $data );
+
 
 		$order->add_meta_data( 'payger_currency', $asset );
 		$order->add_meta_data( 'payger_ammount', $amount );
