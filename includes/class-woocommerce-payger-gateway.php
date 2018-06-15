@@ -278,9 +278,12 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		$response = $this->payger->post( 'merchants/payments/', $args );
 
 
+		error_log('RESPONSE');
+		error_log(print_r($response, true));
+
 		$qrCode     = $response['data']->content->qrCode;
 		$payment_id = $response['data']->content->id;
-
+		$address    = $response['data']->content->address;
 
 		//
 		$data        = base64_decode( $qrCode->content );
@@ -303,6 +306,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		$order->add_meta_data( 'payger_qrcode', $qrCode );
 		$order->add_meta_data( 'payger_qrcode_image', $uploads['baseurl'] . $filename); //stores qrcode url so that email can use this.
 		$order->add_meta_data( 'payger_payment_id', $payment_id );
+		$order->add_meta_data( 'payger_address', $address );
 
 		// Mark as on-hold (we're awaiting the cheque)
 		$order->update_status( 'on-hold', __( 'Awaiting Payger payment', 'payger' ) );

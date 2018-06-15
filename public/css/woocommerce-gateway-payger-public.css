@@ -6,3 +6,40 @@
 .hide {
     display: none;
 }
+
+/*
+#qrCode_text {
+    border: none;
+    width: 50%;
+    float: left;
+}
+
+.copy_clipboard {
+
+    float: right;
+}
+
+.qrcode {
+    border: 1px dotted;
+    min-height: 80px;
+}*/
+
+
+.qrcode {
+    width: 100%;
+    border: 1px dotted;
+}
+
+#qrCode_text {
+    align-items: center;
+    display: flex;
+    border: none;
+    width: 50%;
+    float: left;
+}
+
+.copy_clipboard {
+    align-items: center;
+    display: flex;
+    margin-left:auto;
+}

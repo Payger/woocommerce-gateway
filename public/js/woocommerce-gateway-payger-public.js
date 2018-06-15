@@ -176,4 +176,19 @@
         return false;
     });
 
+
+
+    //handle qrCode text copy
+    $( '.copy_clipboard' ).on( 'click', function(){
+        /* Get the text field */
+        var copyText = document.getElementById("qrCode_text");
+
+        /* Select the text field */
+        copyText.select();
+
+        /* Copy the text inside the text field */
+        document.execCommand("copy");
+    } );
+
+
 })( jQuery );

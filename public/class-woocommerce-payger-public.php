@@ -102,17 +102,33 @@ class Woocommerce_Payger_Public {
 	 */
 	public function update_thank_you( $order_id ) {
 
-		$order  = new WC_Order( $order_id );
-		$qrCode = $order->get_meta('payger_qrcode');
+		$order   = new WC_Order( $order_id );
+		$qrCode  = $order->get_meta('payger_qrcode');
+		$address = $order->get_meta('payger_address');
+		$currency = $order->get_meta('payger_currency');
+		$amount   = $order->get_meta('payger_ammount');
+
+		//FIXME possible add currency icon
 
 		$message = apply_filters( 'payger_thankyou_previous_qrCode', __('Please use the following qrCode to process your payment.', 'payger') );
 
 		if ( $qrCode ) {
-			printf( '<p>%3$s</p>
-					 <p><img src="data:image/%2$s;base64,%1$s" alt="Payger qrCode"></p>',
-				$qrCode->content,
-				$qrCode->fileType,
-				esc_html( $message )
+			printf( '
+					 <p>%3$s</p>
+					 <div class="qrcode">
+						<input type="text" id="qrCode_text" value="%5$s"> <button class="copy_clipboard">%4$s</button>
+					</div>
+					 <p><img src="data:image/%2$s;base64,%1$s" alt="Payger qrCode"></p>
+					 <p>%8$s %6$s %9$s %7$s </p>',
+				$qrCode->content, //1
+				$qrCode->fileType, //2
+				esc_html( $message ), //3
+				esc_html__( 'Copy', 'payger' ), //4
+				esc_attr( $address ), //5
+				esc_html($amount), //6
+				esc_html($currency), //7
+				esc_html__('You will pay', 'payger'),//8
+				esc_html__('in', 'payger') //9
 			);
 		}
 	}
