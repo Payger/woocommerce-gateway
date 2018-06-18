@@ -46,10 +46,11 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		require_once( 'Payger.php' );
 
 		$this->id                 = 'payger_gateway';
-		$this->icon               = 'https://payger.com/wp-content/themes/payger/images/logo.png';
+		$this->icon               = 'https://payger.com/wp-content/uploads/2018/03/logo_green-350x75.png';
 		$this->has_fields         = true;
-		$this->method_title       = 'Payger';
-		$this->method_description = __( 'Pay with bitcoins brought to you by Payger', 'payger' );
+		$this->method_title       = __( 'Payger', 'payger' );
+		$this->title       = __( 'Payger', 'payger' );
+		$this->description = __( 'Pay with cryptocurrency (powered by Payger)', 'payger' );
 
 
 		$key    = $this->get_option( 'key' );
@@ -78,6 +79,21 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 	public function get_instance(){
 		return $this->payger;
+	}
+
+	/**
+	 * Return the gateway's icon.
+	 *
+	 * @return string
+	 */
+	public function get_icon() {
+
+		$icon = $this->icon ? '<img src="' . WC_HTTPS::force_https_url( $this->icon ) . '" alt="' . esc_attr( $this->get_title() ) . '" />' : '';
+
+		$icon .= sprintf( '<a href="%1$s" class="about_paypal" target="_blank">' . esc_attr__( 'What is Payger?', 'payger' ) . '</a>', esc_url( 'http://www.payger.com' ) );
+
+
+		return apply_filters( 'woocommerce_gateway_icon', $icon, $this->id );
 	}
 
 	/**
@@ -169,11 +185,6 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		$response = $this->payger->get( 'merchants/exchange-rates', array('from' => $selling_currency ) );
 
-
-	//	error_log('ACCEPTED CURRENCIES RESPONSE ');
-	//	error_log(print_r( $response, true ) );
-
-
 		$currencies = array();
 
 		if ( $rates = $response['data']->content->rates ) {
@@ -192,9 +203,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 	 */
 	public function payment_fields() {
 
-		/*if ( 'yes' == $this->sandbox ) {
-			$description .= ' ' . sprintf( __( 'TEST MODE ENABLED. Use a test card: %s', 'woocommerce' ), '<a href="https://www.simplify.com/commerce/docs/tutorial/index#testing">https://www.simplify.com/commerce/docs/tutorial/index#testing</a>' );
-		}*/
+		$description = $this->description;
 
 		if ( $description ) {
 			echo wpautop( wptexturize( trim( $description ) ) );
@@ -272,9 +281,27 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		$qrCode     = $response['data']->content->qrCode;
 		$payment_id = $response['data']->content->id;
 
+
+		//
+		$data        = base64_decode( $qrCode->content );
+		$uploads     = wp_upload_dir();
+		$upload_path = $uploads['basedir'];
+		$filename    = '/payger_tmp/'  . $order_id .'.png';
+
+		// create temporary directory if does not exists
+		if( ! file_exists( $upload_path . '/payger_tmp' ) ) {
+			mkdir( $upload_path . '/payger_tmp' );
+		}
+
+		//always update file so that if qrcode changes for this
+		//payment the code is still valid
+		file_put_contents( $upload_path . $filename, $data );
+
+
 		$order->add_meta_data( 'payger_currency', $asset );
 		$order->add_meta_data( 'payger_ammount', $amount );
 		$order->add_meta_data( 'payger_qrcode', $qrCode );
+		$order->add_meta_data( 'payger_qrcode_image', $uploads['baseurl'] . $filename); //stores qrcode url so that email can use this.
 		$order->add_meta_data( 'payger_payment_id', $payment_id );
 
 		// Mark as on-hold (we're awaiting the cheque)

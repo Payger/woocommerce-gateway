@@ -153,7 +153,7 @@ Class Payger {
 
 
 		$url = 'https://merchant-api-{{ ENV }}.payger.com/api/v1/{{ CLASS }}'; //FIXME Payger::getUrl()
-		$url = str_replace( '{{ ENV }}', 'test', $url ); //TODO change this dinamically
+		$url = str_replace( '{{ ENV }}', 'test', $url ); //TODO change this dynamically
 		$url = str_replace( '{{ CLASS }}', $endpoint, $url );
 
 		$curl = curl_init();
@@ -190,13 +190,14 @@ Class Payger {
 		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, TRUE);
 
 
+		//Get new token
 		if ( 'oauth/token' == $endpoint ) {
 
 			$post_data = "grant_type=password&username=key8&password=O5pCmkzuQx";
 
 			curl_setopt($curl, CURLOPT_POSTFIELDS, $post_data);
 			curl_setopt($curl, CURLOPT_HTTPHEADER, array(
-					"authorization: Basic Y2xpZW50MTpTRkRQZzU3YlZKWXliV1px",
+					"authorization: Basic a2V5ODpPNXBDbWt6dVF4",
 					"cache-control: no-cache",
 					"content-type: application/x-www-form-urlencoded",
 				));

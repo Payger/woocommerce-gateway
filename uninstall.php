@@ -29,3 +29,12 @@
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
 }
+
+$uploads     = wp_upload_dir();
+$upload_path = $uploads['basedir'];
+$dirname     = $upload_path . '/payger_tmp/';
+
+//Delete all temporary files so that we can delete the directory
+array_map('unlink', glob("$dirname/*.*"));
+rmdir( $dirname );
+
