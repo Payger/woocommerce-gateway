@@ -265,6 +265,15 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		$amount   = WC()->cart->cart_contents_total;
 		$asset    = $_POST['payger_gateway'];
 
+		//get session meta
+		$session_data = WC()->session->get( 'crypto_meta' );
+		if (! empty ( $session_data ) ) {
+			error_log( 'SESSION DATA' );
+			error_log( print_r( $session_data, true ) );
+
+			$amount = $session_data['amount'];
+		}
+
 
 		$args = array (
 			'asset'      => $asset,

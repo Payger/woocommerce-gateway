@@ -130,10 +130,24 @@ class Woocommerce_Payger_Admin {
 		$payger_instance  = $this->payger->get_instance();
 		$response         = $payger_instance->get( 'merchants/exchange-rates', array('from' => $selling_currency, 'to'=> $choosen_crypto, 'amount' => $amount ) );
 
-		$result = $response['data']->content->rates;
-		$result = $result[0]; //I am interested in a single quote
-		$rate   = $result->rate;
-		$amount = $result->amount;
+		//FIXME handle error
+
+		$result    = $response['data']->content->rates;
+		$result    = $result[0]; //I am interested in a single quote
+		$limit     = $result->limit;
+		$precision = $result->precision;
+		$rate      = round( $result->rate, $precision );
+		$amount    = round( $result->amount, $precision );
+
+		// will store meta info so that we can use it later
+		// to process payment
+		WC()->session->set( 'crypto_meta', array(
+			'currency'  => $choosen_crypto,
+			'rate'      => $rate,
+			'amount'    => $amount,
+			'limit'     => $limit,
+			'precision' => $precision //maybe needed but we are already setting the correct precision
+		) );
 
 		wp_send_json_success( array('rate' => $rate, 'amount'=> $amount ) );
 
@@ -233,4 +247,5 @@ class Woocommerce_Payger_Admin {
 			}
 		}
 	}
+
 }
