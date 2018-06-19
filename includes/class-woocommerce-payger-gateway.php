@@ -185,6 +185,8 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		$response = $this->payger->get( 'merchants/exchange-rates', array('from' => $selling_currency ) );
 
+		error_log( print_r( $response, true));
+
 		$currencies = array();
 
 		if ( $rates = $response['data']->content->rates ) {

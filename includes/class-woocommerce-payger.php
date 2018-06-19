@@ -87,6 +87,18 @@ class Woocommerce_Payger {
 	 * @access   private
 	 */
 	private function load_dependencies() {
+
+
+		// Checks if Woocommerce is active, plugin must have woocommerce to function
+		try {
+			if ( ! in_array( 'woocommerce/woocommerce.php', (array) get_option( 'active_plugins' ), true ) ) {
+				throw new Exception( __( 'WooCommerce Gateway Payger requires WooCommerce to be activated', 'payger' ), 2 );
+			}
+		} catch ( Exception $e ) {
+			update_option( 'payger_warning_message', $e->getMessage() );
+			add_action( 'admin_notices', array( $this, 'show_install_warning' ) );
+		}
+
 		/**
 		 * The class responsible for defining internationalization functionality
 		 * of the plugin.
@@ -105,6 +117,26 @@ class Woocommerce_Payger {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-woocommerce-payger-public.php';
 
 
+	}
+
+
+	/**
+	 * Adds error message when woocommerce is not
+	 * activated but we have this plugin active.
+	 * @since 1.0.0
+	 * @author Ana Aires ( ana@widgilabs.com )
+	 */
+	public function show_install_warning() {
+		$message = get_option( 'payger_warning_message', '' );
+		if ( ! empty( $message ) ) {
+			?>
+			<div class="error fade">
+				<p>
+					<strong><?php echo esc_html( $message ); ?></strong>
+				</p>
+			</div>
+		<?php
+		}
 	}
 
 	/**
