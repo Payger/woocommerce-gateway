@@ -260,20 +260,25 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 	 */
 	public function process_payment( $order_id ) {
 		global $woocommerce;
-		$order = new WC_Order( $order_id );
+		$error_message = false;
+		$order         = new WC_Order( $order_id );
 
 		$amount   = WC()->cart->cart_contents_total;
 		$asset    = $_POST['payger_gateway'];
 
 		//get session meta
 		$session_data = WC()->session->get( 'crypto_meta' );
-		if (! empty ( $session_data ) ) {
-			error_log( 'SESSION DATA' );
-			error_log( print_r( $session_data, true ) );
-
+		if ( ! empty( $session_data ) ) {
 			$amount = $session_data['amount'];
+			$limits = $session_data['limit'];
+
+			if ( $amount > $limits ) {
+				$limits        = false;
+				$error_message = apply_filters( 'payger_enforce_limits', __( 'Your order amount exceeds the allowed limit for ' . $asset . '. Please choose other currency or review your order.', 'payger' ) );
+			}
 		}
 
+		//check for currency limiets
 
 		$args = array (
 			'asset'      => $asset,
@@ -293,7 +298,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		$success = ( 201 === $response['status'] ) ? true : false; //bad response if status different from 201
 
 
-		if ( $success ) {
+		if ( $success && ! $error_message ) {
 
 			$qrCode     = $response['data']->content->qrCode;
 			$payment_id = $response['data']->content->id;
@@ -315,6 +320,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			file_put_contents( $upload_path . $filename, $data );
 
 
+			//save meta to possible queries and to show information on thank you page or emails
 			$order->add_meta_data( 'payger_currency', $asset );
 			$order->add_meta_data( 'payger_ammount', $amount );
 			$order->add_meta_data( 'payger_qrcode', $qrCode );
@@ -341,8 +347,11 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			);
 		} else {
 
-			$error_message = $response['data']->error->message;
-			$error_message = apply_filters( 'payger_payment_error_message', $error_message );
+			//check if error message was previously set
+			if ( ! $error_message ) {
+				$error_message = $response['data']->error->message;
+				$error_message = apply_filters( 'payger_payment_error_message', $error_message );
+			}
 			wc_add_notice( __('Payment error: ', 'payger') . $error_message, 'error' );
 			return;
 		}
