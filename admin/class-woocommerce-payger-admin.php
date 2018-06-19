@@ -138,6 +138,7 @@ class Woocommerce_Payger_Admin {
 		$precision = $result->precision;
 		$rate      = round( $result->rate, $precision );
 		$amount    = round( $result->amount, $precision );
+		$amount    = $result->amount;
 
 		// will store meta info so that we can use it later
 		// to process payment
