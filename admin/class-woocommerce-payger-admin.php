@@ -168,15 +168,27 @@ class Woocommerce_Payger_Admin {
 		}
 
 		$qrCode  = $order->get_meta( 'payger_qrcode_image' );
-		
+		$address = $order->get_meta('payger_address');
+		$currency = $order->get_meta('payger_currency');
+		$amount   = $order->get_meta('payger_ammount');
+
 		$message = apply_filters( 'payger_thankyou_previous_qrCode', __('Please use the following qrCode to process your payment.', 'payger') );
 
 		if( $qrCode ) {
 
 			printf( '<p>%2$s</p>
-					 <p><img src="%1$s" alt="Payger qrCode"></p>',
-				$qrCode,
-				esc_html( $message )
+					<div class="qrcode">
+						<span>%3$s</span>
+					</div>
+					 <p><img src="%1$s" alt="Payger qrCode"></p>
+					  <p>%6$s %4$s %7$s %5$s </p>',
+				$qrCode,              //1
+				esc_html( $message ), //2
+				esc_html( $address ), //3
+				esc_html($amount), //4
+				esc_html($currency), //5
+				esc_html__('You will pay', 'payger'),//6
+				esc_html__('in', 'payger') //7
 			);
 		}
 

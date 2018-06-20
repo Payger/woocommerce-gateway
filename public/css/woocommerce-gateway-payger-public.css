@@ -6,3 +6,22 @@
 .hide {
     display: none;
 }
+
+.qrcode {
+    width: 100%;
+    border: 1px dotted;
+}
+
+#qrCode_text {
+    align-items: center;
+    display: flex;
+    border: none;
+    width: 50%;
+    float: left;
+}
+
+.copy_clipboard {
+    align-items: center;
+    display: flex;
+    margin-left:auto;
+}
