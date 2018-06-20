@@ -260,20 +260,25 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 	 */
 	public function process_payment( $order_id ) {
 		global $woocommerce;
-		$order = new WC_Order( $order_id );
+		$error_message = false;
+		$order         = new WC_Order( $order_id );
 
 		$amount   = WC()->cart->cart_contents_total;
 		$asset    = $_POST['payger_gateway'];
 
 		//get session meta
 		$session_data = WC()->session->get( 'crypto_meta' );
-		if (! empty ( $session_data ) ) {
-			error_log( 'SESSION DATA' );
-			error_log( print_r( $session_data, true ) );
-
+		if ( ! empty( $session_data ) ) {
 			$amount = $session_data['amount'];
+			$limits = $session_data['limit'];
+
+			if ( $amount > $limits ) {
+				$limits        = false;
+				$error_message = apply_filters( 'payger_enforce_limits', __( 'Your order amount exceeds the allowed limit for ' . $asset . '. Please choose other currency or review your order.', 'payger' ) );
+			}
 		}
 
+		//check for currency limiets
 
 		$args = array (
 			'asset'      => $asset,
@@ -287,53 +292,69 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		$response = $this->payger->post( 'merchants/payments/', $args );
 
 
-		error_log('RESPONSE');
+		error_log('--------------------------------------------> RESPONSE');
 		error_log(print_r($response, true));
 
-		$qrCode     = $response['data']->content->qrCode;
-		$payment_id = $response['data']->content->id;
-		$address    = $response['data']->content->address;
+		$success = ( 201 === $response['status'] ) ? true : false; //bad response if status different from 201
 
-		//
-		$data        = base64_decode( $qrCode->content );
-		$uploads     = wp_upload_dir();
-		$upload_path = $uploads['basedir'];
-		$filename    = '/payger_tmp/'  . $order_id .'.png';
 
-		// create temporary directory if does not exists
-		if( ! file_exists( $upload_path . '/payger_tmp' ) ) {
-			mkdir( $upload_path . '/payger_tmp' );
+		if ( $success && ! $error_message ) {
+
+			$qrCode     = $response['data']->content->qrCode;
+			$payment_id = $response['data']->content->id;
+			$address    = $response['data']->content->address;
+
+			//
+			$data        = base64_decode( $qrCode->content );
+			$uploads     = wp_upload_dir();
+			$upload_path = $uploads['basedir'];
+			$filename    = '/payger_tmp/' . $order_id . '.png';
+
+			// create temporary directory if does not exists
+			if ( ! file_exists( $upload_path . '/payger_tmp' ) ) {
+				mkdir( $upload_path . '/payger_tmp' );
+			}
+
+			//always update file so that if qrcode changes for this
+			//payment the code is still valid
+			file_put_contents( $upload_path . $filename, $data );
+
+
+			//save meta to possible queries and to show information on thank you page or emails
+			$order->add_meta_data( 'payger_currency', $asset );
+			$order->add_meta_data( 'payger_ammount', $amount );
+			$order->add_meta_data( 'payger_qrcode', $qrCode );
+			$order->add_meta_data( 'payger_qrcode_image', $uploads['baseurl'] . $filename ); //stores qrcode url so that email can use this.
+			$order->add_meta_data( 'payger_payment_id', $payment_id );
+			$order->add_meta_data( 'payger_address', $address );
+
+			// Mark as on-hold (we're awaiting the cheque)
+			$order->update_status( 'on-hold', __( 'Awaiting Payger payment', 'payger' ) );
+			$order->add_order_note( __( 'DEBUG PAYMENT ID ' . $payment_id, 'payger' ) );
+
+			// Reduce stock levels
+			$order->reduce_order_stock();
+
+			$order->save();
+
+			// Remove cart
+			$woocommerce->cart->empty_cart();
+
+			// Return thankyou redirect
+			return array(
+				'result'   => 'success',
+				'redirect' => $this->get_return_url( $order )
+			);
+		} else {
+
+			//check if error message was previously set
+			if ( ! $error_message ) {
+				$error_message = $response['data']->error->message;
+				$error_message = apply_filters( 'payger_payment_error_message', $error_message );
+			}
+			wc_add_notice( __('Payment error: ', 'payger') . $error_message, 'error' );
+			return;
 		}
-
-		//always update file so that if qrcode changes for this
-		//payment the code is still valid
-		file_put_contents( $upload_path . $filename, $data );
-
-
-		$order->add_meta_data( 'payger_currency', $asset );
-		$order->add_meta_data( 'payger_ammount', $amount );
-		$order->add_meta_data( 'payger_qrcode', $qrCode );
-		$order->add_meta_data( 'payger_qrcode_image', $uploads['baseurl'] . $filename); //stores qrcode url so that email can use this.
-		$order->add_meta_data( 'payger_payment_id', $payment_id );
-		$order->add_meta_data( 'payger_address', $address );
-
-		// Mark as on-hold (we're awaiting the cheque)
-		$order->update_status( 'on-hold', __( 'Awaiting Payger payment', 'payger' ) );
-		$order->add_order_note( __('DEBUG PAYMENT ID '.$payment_id, 'payger' ) );
-
-		// Reduce stock levels
-		$order->reduce_order_stock();
-
-		$order->save();
-
-		// Remove cart
-		$woocommerce->cart->empty_cart();
-
-		// Return thankyou redirect
-		return array(
-			'result'   => 'success',
-			'redirect' => $this->get_return_url( $order )
-		);
 	}
 
 }
