@@ -194,7 +194,7 @@ class Woocommerce_Payger_Admin {
 					<div class="qrcode">
 						<span>%3$s</span>
 					</div>
-					 <p><img src="%1$s" alt="Payger qrCode"></p>
+					 <p><img src="%1$s" alt="%8$s"></p>
 					  <p>%6$s %4$s %7$s %5$s </p>',
 				$qrCode,              //1
 				esc_html( $message ), //2
@@ -202,7 +202,8 @@ class Woocommerce_Payger_Admin {
 				esc_html($amount), //4
 				esc_html($currency), //5
 				esc_html__('You will pay', 'payger'),//6
-				esc_html__('in', 'payger') //7
+				esc_html__('in', 'payger'), //7
+				esc_attr__('Payger qrCode', 'payger') //8
 			);
 		}
 
