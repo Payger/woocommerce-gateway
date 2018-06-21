@@ -266,6 +266,9 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		$amount   = WC()->cart->cart_contents_total;
 		$asset    = $_POST['payger_gateway'];
 
+		error_log( 'get amount ' . $amount );
+		error_log( 'get order total ' . $this->get_order_total() );
+
 		//get session meta
 		$session_data = WC()->session->get( 'crypto_meta' );
 		if ( ! empty( $session_data ) ) {
@@ -329,7 +332,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			$order->add_meta_data( 'payger_address', $address );
 
 			// Mark as on-hold (we're awaiting the cheque)
-			$order->update_status( 'on-hold', __( 'Awaiting Payger payment', 'payger' ) );
+			$order->update_status( 'pending', __( 'Awaiting Payger payment', 'payger' ) );
 			$order->add_order_note( __( 'DEBUG PAYMENT ID ' . $payment_id, 'payger' ) );
 
 			// Reduce stock levels
@@ -355,6 +358,54 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			wc_add_notice( __('Payment error: ', 'payger') . $error_message, 'error' );
 			return;
 		}
+	}
+
+	/**
+	 * Given a cryptocurrency get it's exchange rates
+	 *
+	 * @since 1.0.0
+	 * @author Ana Aires ( ana@widgilabs.com )
+	 */
+	public function get_quote( $choosen_crypto, $order_key = false ) {
+
+		$selling_currency = get_option('woocommerce_currency');
+		$amount           = $this->get_order_total();
+
+		error_log('ORDER KEY ');
+
+		if ( $order_key && 0 == $amount ) {
+			$order_id =  wc_get_order_id_by_order_key( $order_key );
+			error_log('ORDER ID '. $order_id );
+			$order   = new WC_Order( $order_id );
+			$amount  = $order->get_total();
+		}
+
+		error_log('AMOUNT TO PAY ' .$amount );
+
+
+		$response         = $this->payger->get( 'merchants/exchange-rates', array('from' => $selling_currency, 'to'=> $choosen_crypto, 'amount' => $amount ) );
+
+		//FIXME handle error
+
+		$result    = $response['data']->content->rates;
+		$result    = $result[0]; //I am interested in a single quote
+		$limit     = $result->limit;
+		$precision = $result->precision;
+		$rate      = round( $result->rate, $precision );
+		$amount    = round( $result->amount, $precision );
+
+		// will store meta info so that we can use it later
+		// to process payment
+		WC()->session->set( 'crypto_meta', array(
+			'currency'  => $choosen_crypto,
+			'rate'      => $rate,
+			'amount'    => $amount,
+			'limit'     => $limit,
+			'precision' => $precision //maybe needed but we are already setting the correct precision
+		) );
+
+		return array('rate' => $rate, 'amount'=> $amount );
+
 	}
 
 }

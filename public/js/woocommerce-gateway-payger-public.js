@@ -6,7 +6,19 @@
     var $choosen_currency;
     var processing = false;
 
+
+    // choose cryptocurrency on my-account trigger pay
+    $('#payger_gateway_coin').change(function () {
+
+        console.log('click');
+        $choosen_currency = $(this).val();
+        console.log( $choosen_currency);
+
+        handle_currency_selection( $choosen_currency );
+    });
+
     //needed since payment options are added to the DOM after the document ready
+    //choose cryptocurrency on checkout page
     jQuery(document).ajaxComplete(function () {
 
         //Change currency
@@ -15,70 +27,100 @@
             console.log(' CHANGE payger_gateway_coin ');
 
             $choosen_currency = $(this).val();
-            var $form         = $('.woocommerce-checkout');
 
-            //hides convertion rates from previous currency
-            $('#payger_convertion').addClass('hide');
+            handle_currency_selection( $choosen_currency );
 
-            if( 0 == $choosen_currency ) {
-                return;
-            }
-
-            //get current rates for this currency
-            $.ajax({
-
-                cache: false,
-                timeout: 3000,
-                url: payger.ajaxurl,
-                type: "get",
-                data: ({
-                    nonce:payger.nonce,
-                    action:'payger_get_quote',
-                    to: $choosen_currency,
-                }),
-
-                beforeSend: function() {
-
-                   //init loading
-                    $form.block({
-                        message: null,
-                        overlayCSS: {
-                            background: '#fff',
-                            opacity: 0.6
-                        }
-                    });
-                },
-
-                success: function( response, textStatus, jqXHR ){
-
-                    $rate = response.data.rate;
-                    $amount = response.data.amount;
-
-                    $('.payger_amount').html( $amount );
-                    $('.payger_rate').html( $rate );
-
-                    setTimeout(function(){
-                        $('#payger_convertion').removeClass('hide');
-                    }, 500);
-
-
-                    $form.unblock();
-
-
-                },
-
-                error: function( jqXHR, textStatus, errorThrown ){
-                    console.log( 'The following error occured: ' + textStatus, errorThrown );
-                },
-
-                complete: function( jqXHR, textStatus ){
-                }
-
-            });
 
         });
 
     });
+
+
+    function handle_currency_selection( $choosen_currency ) {
+
+        var $form         = $('.woocommerce-checkout');
+
+        //hides convertion rates from previous currency
+        $('#payger_convertion').addClass('hide');
+
+        if( 0 == $choosen_currency ) {
+            return;
+        }
+
+
+        var order_key = false;
+        $.urlParam = function(name){
+            var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+            if ( results ) {
+                return results[1]
+            } else {
+                return 0
+            };
+        }
+
+        if( $.urlParam('key') ) {
+            order_key = $.urlParam('key');
+        }
+
+        //get current rates for this currency
+        $.ajax({
+
+            cache: false,
+            timeout: 3000,
+            url: payger.ajaxurl,
+            type: "get",
+            data: ({
+                nonce:payger.nonce,
+                action:'payger_get_quote',
+                to: $choosen_currency,
+                order_key : order_key
+            }),
+
+            beforeSend: function() {
+
+                //init loading
+                $form.block({
+                    message: null,
+                    overlayCSS: {
+                        background: '#fff',
+                        opacity: 0.6
+                    }
+                });
+            },
+
+            success: function( response, textStatus, jqXHR ){
+
+                $rate = response.data.rate;
+                $amount = response.data.amount;
+
+                $('.payger_amount').html( $amount );
+                $('.payger_rate').html( $rate );
+
+                setTimeout(function(){
+                    $('#payger_convertion').removeClass('hide');
+                }, 500);
+
+
+                $form.unblock();
+
+
+            },
+
+            error: function( jqXHR, textStatus, errorThrown ){
+                console.log( 'The following error occured: ' + textStatus, errorThrown );
+            },
+
+            complete: function( jqXHR, textStatus ){
+            }
+
+        });
+    }
+
+
+
+
+
+
 
 
     var checkout_form = $( 'form.checkout' );
@@ -95,11 +137,6 @@
         if( processing ) {
             return true;
         }
-
-      //  e.preventDefault();
-
-        // do your custom stuff
-        console.log('CLICK ON PLACE ORDER');
 
         checkout_form.block({
             message: null,
