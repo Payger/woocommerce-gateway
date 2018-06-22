@@ -11,9 +11,7 @@
     // choose cryptocurrency on my-account trigger pay
     $('#payger_gateway_coin').change(function () {
 
-        console.log('click');
         $choosen_currency = $(this).val();
-        console.log( $choosen_currency);
 
         handle_currency_selection( $choosen_currency );
     });
@@ -36,6 +34,49 @@
 
     });
 
+
+    // Handle Place Order
+    // Place Order Needs to get a new quote in case rate changed
+    var checkout_form = $( 'form.checkout' );
+
+    $( document.body ).on( 'checkout_error', function(){
+        processing = false; //we need to double check again if form submitting fails
+    } );
+
+    checkout_form.on( 'checkout_place_order', function( e ) {
+       return handle_place_order();
+
+    });
+
+    $('form#order_review #place_order').on( 'click', function(e){
+        e.preventDefault();
+        return handle_place_order();
+    });
+
+    //handle qrCode text copy
+    $( '.copy_clipboard' ).on( 'click', function(){
+        /* Get the text field */
+        var copyText = document.getElementById("qrCode_text");
+
+        /* Select the text field */
+        copyText.select();
+
+        /* Copy the text inside the text field */
+        document.execCommand("copy");
+    } );
+
+
+    //handle qrCode text copy
+    $( '.copy_clipboard' ).on( 'click', function(){
+        /* Get the text field */
+        var copyText = document.getElementById("qrCode_text");
+
+        /* Select the text field */
+        copyText.select();
+
+        /* Copy the text inside the text field */
+        document.execCommand("copy");
+    } );
 
     function handle_currency_selection( $choosen_currency ) {
 
@@ -117,44 +158,6 @@
         });
     }
 
-
-
-
-
-
-
-    // Handle Place Order
-    // Place Order Needs to get a new quote in case rate changed
-    var checkout_form = $( 'form.checkout' );
-
-    $( document.body ).on( 'checkout_error', function(){
-        processing = false; //we need to double check again if form submitting fails
-    } );
-
-    checkout_form.on( 'checkout_place_order', function( e ) {
-       return handle_place_order();
-
-    });
-
-    $('form#order_review #place_order').on( 'click', function(e){
-        e.preventDefault();
-        return handle_place_order();
-    });
-
-    //handle qrCode text copy
-    $( '.copy_clipboard' ).on( 'click', function(){
-        /* Get the text field */
-        var copyText = document.getElementById("qrCode_text");
-
-        /* Select the text field */
-        copyText.select();
-
-        /* Copy the text inside the text field */
-        document.execCommand("copy");
-    } );
-
-
-
     function handle_place_order() {
         if( processing ) {
             return true;
@@ -162,7 +165,6 @@
 
         //needed for order-pay endpoint
         if ( $('#order_review').length ) {
-            
             if ( 0 != $('.order_id').val()) {
                 $order_id = $('.order_id').val();
             }
