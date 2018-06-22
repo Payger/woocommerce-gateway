@@ -2,11 +2,22 @@
 	'use strict';
 
     var $rate;
+    var $order_id = false;
     var $amount;
     var $choosen_currency;
     var processing = false;
 
+
+    // choose cryptocurrency on my-account trigger pay
+    $('#payger_gateway_coin').change(function () {
+
+        $choosen_currency = $(this).val();
+
+        handle_currency_selection( $choosen_currency );
+    });
+
     //needed since payment options are added to the DOM after the document ready
+    //choose cryptocurrency on checkout page
     jQuery(document).ajaxComplete(function () {
 
         //Change currency
@@ -15,91 +26,137 @@
             console.log(' CHANGE payger_gateway_coin ');
 
             $choosen_currency = $(this).val();
-            var $form         = $('.woocommerce-checkout');
 
-            //hides convertion rates from previous currency
-            $('#payger_convertion').addClass('hide');
+            handle_currency_selection( $choosen_currency );
 
-            if( 0 == $choosen_currency ) {
-                return;
-            }
-
-            //get current rates for this currency
-            $.ajax({
-
-                cache: false,
-                timeout: 3000,
-                url: payger.ajaxurl,
-                type: "get",
-                data: ({
-                    nonce:payger.nonce,
-                    action:'payger_get_quote',
-                    to: $choosen_currency,
-                }),
-
-                beforeSend: function() {
-
-                   //init loading
-                    $form.block({
-                        message: null,
-                        overlayCSS: {
-                            background: '#fff',
-                            opacity: 0.6
-                        }
-                    });
-                },
-
-                success: function( response, textStatus, jqXHR ){
-
-                    $rate = response.data.rate;
-                    $amount = response.data.amount;
-
-                    $('.payger_amount').html( $amount );
-                    $('.payger_rate').html( $rate );
-
-                    setTimeout(function(){
-                        $('#payger_convertion').removeClass('hide');
-                    }, 500);
-
-
-                    $form.unblock();
-
-
-                },
-
-                error: function( jqXHR, textStatus, errorThrown ){
-                    console.log( 'The following error occured: ' + textStatus, errorThrown );
-                },
-
-                complete: function( jqXHR, textStatus ){
-                }
-
-            });
 
         });
 
     });
 
 
+    // Handle Place Order
+    // Place Order Needs to get a new quote in case rate changed
     var checkout_form = $( 'form.checkout' );
 
     $( document.body ).on( 'checkout_error', function(){
-        console.log('form fails');
         processing = false; //we need to double check again if form submitting fails
     } );
 
     checkout_form.on( 'checkout_place_order', function( e ) {
+       return handle_place_order();
 
-        console.log('processing ' + processing);
+    });
 
+    $('form#order_review #place_order').on( 'click', function(e){
+        e.preventDefault();
+        return handle_place_order();
+    });
+
+    //handle qrCode text copy
+    $( '.copy_clipboard' ).on( 'click', function(){
+        /* Get the text field */
+        var copyText = document.getElementById("qrCode_text");
+
+        /* Select the text field */
+        copyText.select();
+
+        /* Copy the text inside the text field */
+        document.execCommand("copy");
+    } );
+    
+    function handle_currency_selection( $choosen_currency ) {
+
+        var $form         = $('.woocommerce-checkout');
+
+        //hides convertion rates from previous currency
+        $('#payger_convertion').addClass('hide');
+
+        if( 0 == $choosen_currency ) {
+            return;
+        }
+
+
+        var order_key = false;
+        $.urlParam = function(name){
+            var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+            if ( results ) {
+                return results[1]
+            } else {
+                return 0
+            };
+        }
+
+        if( $.urlParam('key') ) {
+            order_key = $.urlParam('key');
+        }
+
+        //get current rates for this currency
+        $.ajax({
+
+            cache: false,
+            timeout: 3000,
+            url: payger.ajaxurl,
+            type: "get",
+            data: ({
+                nonce:payger.nonce,
+                action:'payger_get_quote',
+                to: $choosen_currency,
+                order_key : order_key
+            }),
+
+            beforeSend: function() {
+
+                //init loading
+                $form.block({
+                    message: null,
+                    overlayCSS: {
+                        background: '#fff',
+                        opacity: 0.6
+                    }
+                });
+            },
+
+            success: function( response, textStatus, jqXHR ){
+
+                $rate = response.data.rate;
+                $amount = response.data.amount;
+
+                $('.payger_amount').html( $amount );
+                $('.payger_rate').html( $rate );
+
+                setTimeout(function(){
+                    $('#payger_convertion').removeClass('hide');
+                }, 500);
+
+
+                $form.unblock();
+
+
+            },
+
+            error: function( jqXHR, textStatus, errorThrown ){
+                console.log( 'The following error occured: ' + textStatus, errorThrown );
+            },
+
+            complete: function( jqXHR, textStatus ){
+            }
+
+        });
+    }
+
+    function handle_place_order() {
         if( processing ) {
             return true;
         }
 
-      //  e.preventDefault();
-
-        // do your custom stuff
-        console.log('CLICK ON PLACE ORDER');
+        //needed for order-pay endpoint
+        if ( $('#order_review').length ) {
+            if ( 0 != $('.order_id').val()) {
+                $order_id = $('.order_id').val();
+            }
+            checkout_form =  $('#order_review');
+        }
 
         checkout_form.block({
             message: null,
@@ -121,6 +178,7 @@
                 nonce:payger.nonce,
                 action:'payger_get_quote',
                 to: $choosen_currency,
+                order_id: $order_id
             }),
 
             success: function( response, textStatus, jqXHR ){
@@ -128,12 +186,8 @@
                 var update_rate   = response.data.rate;
                 var update_amount = response.data.amount;
 
-                console.log('new rate');
-                console.log(update_rate);
-
-
                 if( $rate !== update_rate ){
-                    console.log('RATE CHANGED');
+
                     $('.update_amount').html( update_amount );
                     $('.update_rate').html( update_rate );
                     $( "#dialog" ).dialog({
@@ -142,7 +196,7 @@
                                 text: "OK",
                                 click: function() {
                                     $( this ).dialog( "close" );
-                                   // checkout_form.off( 'checkout_place_order');
+                                    // checkout_form.off( 'checkout_place_order');
                                     processing = true;
                                     checkout_form.submit();
                                     return true;
@@ -161,7 +215,6 @@
                     });
                     //rate changed so lets ask for user confirmation
                 } else {
-                    console.log('same rate lets proceed');
                     return true; //rate did not change so lets proceed
                 }
             },
@@ -174,21 +227,7 @@
         });
 
         return false;
-    });
-
-
-
-    //handle qrCode text copy
-    $( '.copy_clipboard' ).on( 'click', function(){
-        /* Get the text field */
-        var copyText = document.getElementById("qrCode_text");
-
-        /* Select the text field */
-        copyText.select();
-
-        /* Copy the text inside the text field */
-        document.execCommand("copy");
-    } );
+    }
 
 
 })( jQuery );

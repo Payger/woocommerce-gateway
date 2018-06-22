@@ -123,33 +123,13 @@ class Woocommerce_Payger_Admin {
 			wp_send_json_error();
 		}
 
-		$selling_currency = get_option('woocommerce_currency');
-		$choosen_crypto   = $_GET['to'];
-		$amount           = WC()->cart->cart_contents_total;
+		$choosen_crypto = $_GET['to'];
+		$key            = isset( $_GET['order_key'] ) ? $_GET['order_key'] : false;
+		$order_id       = isset( $_GET['order_id'] ) ? $_GET['order_id'] : false;
 
-		$payger_instance  = $this->payger->get_instance();
-		$response         = $payger_instance->get( 'merchants/exchange-rates', array('from' => $selling_currency, 'to'=> $choosen_crypto, 'amount' => $amount ) );
+		$data = $this->payger->get_quote( $choosen_crypto, $key, $order_id  );
 
-		//FIXME handle error
-
-		$result    = $response['data']->content->rates;
-		$result    = $result[0]; //I am interested in a single quote
-		$limit     = $result->limit;
-		$precision = $result->precision;
-		$rate      = round( $result->rate, $precision );
-		$amount    = round( $result->amount, $precision );
-
-		// will store meta info so that we can use it later
-		// to process payment
-		WC()->session->set( 'crypto_meta', array(
-			'currency'  => $choosen_crypto,
-			'rate'      => $rate,
-			'amount'    => $amount,
-			'limit'     => $limit,
-			'precision' => $precision //maybe needed but we are already setting the correct precision
-		) );
-
-		wp_send_json_success( array('rate' => $rate, 'amount'=> $amount ) );
+		wp_send_json_success( $data );
 
 	}
 
@@ -194,7 +174,7 @@ class Woocommerce_Payger_Admin {
 					<div class="qrcode">
 						<span>%3$s</span>
 					</div>
-					 <p><img src="%1$s" alt="Payger qrCode"></p>
+					 <p><img src="%1$s" alt="%8$s"></p>
 					  <p>%6$s %4$s %7$s %5$s </p>',
 				$qrCode,              //1
 				esc_html( $message ), //2
@@ -202,7 +182,8 @@ class Woocommerce_Payger_Admin {
 				esc_html($amount), //4
 				esc_html($currency), //5
 				esc_html__('You will pay', 'payger'),//6
-				esc_html__('in', 'payger') //7
+				esc_html__('in', 'payger'), //7
+				esc_attr__('Payger qrCode', 'payger') //8
 			);
 		}
 
