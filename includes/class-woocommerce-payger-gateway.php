@@ -221,6 +221,8 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			}
 		}
 
+		$order_id = get_query_var( 'order-pay' ) ? absint( get_query_var( 'order-pay' ) ) : 0;
+
 		if( ! empty( $options ) ) {
 			printf(
 				'<p class="form-row form-row-wide">
@@ -231,6 +233,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 					<option value="0">%4$s</option>
 						%3$s
 					</select>
+					<input type="hidden" class="order_id" value="%11$s">
 					<div id="payger_convertion" class="hide">%5$s <span class="payger_amount"></span> %6$s <span class="payger_rate"></span> = 1 %7$s</div>
 				</p>
 				<div class="hide" id="dialog" title="Payger Confirmation">
@@ -245,7 +248,8 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 				esc_html( $selling_currency ),
 				__( 'Your currency rate was recently updated. You will pay a total amount of', 'payger' ),
 				__( 'corresponding to a rate of', 'payger' ),
-				__( 'Please confirm you want to proceed with your order.', 'payger' )
+				__( 'Please confirm you want to proceed with your order.', 'payger' ),
+				$order_id
 			);
 		}
 	}
@@ -366,21 +370,20 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 	 * @since 1.0.0
 	 * @author Ana Aires ( ana@widgilabs.com )
 	 */
-	public function get_quote( $choosen_crypto, $order_key = false ) {
+	public function get_quote( $choosen_crypto, $order_key = false, $order_id = false ) {
 
 		$selling_currency = get_option('woocommerce_currency');
 		$amount           = $this->get_order_total();
 
-		error_log('ORDER KEY ');
 
-		if ( $order_key && 0 == $amount ) {
+		if ( $order_key && ! $order_id && 0 == $amount ) {
 			$order_id =  wc_get_order_id_by_order_key( $order_key );
-			error_log('ORDER ID '. $order_id );
+		}
+
+		if( $order_id && 0 == $amount ){
 			$order   = new WC_Order( $order_id );
 			$amount  = $order->get_total();
 		}
-
-		error_log('AMOUNT TO PAY ' .$amount );
 
 
 		$response         = $this->payger->get( 'merchants/exchange-rates', array('from' => $selling_currency, 'to'=> $choosen_crypto, 'amount' => $amount ) );

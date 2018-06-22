@@ -125,8 +125,9 @@ class Woocommerce_Payger_Admin {
 
 		$choosen_crypto = $_GET['to'];
 		$key            = isset( $_GET['order_key'] ) ? $_GET['order_key'] : false;
+		$order_id       = isset( $_GET['order_id'] ) ? $_GET['order_id'] : false;
 
-		$data = $this->payger->get_quote( $choosen_crypto, $key  );
+		$data = $this->payger->get_quote( $choosen_crypto, $key, $order_id  );
 
 		wp_send_json_success( $data );
 

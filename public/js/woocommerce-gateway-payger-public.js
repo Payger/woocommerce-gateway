@@ -2,6 +2,7 @@
 	'use strict';
 
     var $rate;
+    var $order_id = false;
     var $amount;
     var $choosen_currency;
     var processing = false;
@@ -122,20 +123,50 @@
 
 
 
-
+    // Handle Place Order
+    // Place Order Needs to get a new quote in case rate changed
     var checkout_form = $( 'form.checkout' );
 
     $( document.body ).on( 'checkout_error', function(){
-        console.log('form fails');
         processing = false; //we need to double check again if form submitting fails
     } );
 
     checkout_form.on( 'checkout_place_order', function( e ) {
+       return handle_place_order();
 
-        console.log('processing ' + processing);
+    });
 
+    $('form#order_review #place_order').on( 'click', function(e){
+        e.preventDefault();
+        return handle_place_order();
+    });
+
+    //handle qrCode text copy
+    $( '.copy_clipboard' ).on( 'click', function(){
+        /* Get the text field */
+        var copyText = document.getElementById("qrCode_text");
+
+        /* Select the text field */
+        copyText.select();
+
+        /* Copy the text inside the text field */
+        document.execCommand("copy");
+    } );
+
+
+
+    function handle_place_order() {
         if( processing ) {
             return true;
+        }
+
+        //needed for order-pay endpoint
+        if ( $('#order_review').length ) {
+            
+            if ( 0 != $('.order_id').val()) {
+                $order_id = $('.order_id').val();
+            }
+            checkout_form =  $('#order_review');
         }
 
         checkout_form.block({
@@ -158,6 +189,7 @@
                 nonce:payger.nonce,
                 action:'payger_get_quote',
                 to: $choosen_currency,
+                order_id: $order_id
             }),
 
             success: function( response, textStatus, jqXHR ){
@@ -165,12 +197,8 @@
                 var update_rate   = response.data.rate;
                 var update_amount = response.data.amount;
 
-                console.log('new rate');
-                console.log(update_rate);
-
-
                 if( $rate !== update_rate ){
-                    console.log('RATE CHANGED');
+
                     $('.update_amount').html( update_amount );
                     $('.update_rate').html( update_rate );
                     $( "#dialog" ).dialog({
@@ -179,7 +207,7 @@
                                 text: "OK",
                                 click: function() {
                                     $( this ).dialog( "close" );
-                                   // checkout_form.off( 'checkout_place_order');
+                                    // checkout_form.off( 'checkout_place_order');
                                     processing = true;
                                     checkout_form.submit();
                                     return true;
@@ -198,7 +226,6 @@
                     });
                     //rate changed so lets ask for user confirmation
                 } else {
-                    console.log('same rate lets proceed');
                     return true; //rate did not change so lets proceed
                 }
             },
@@ -211,21 +238,7 @@
         });
 
         return false;
-    });
-
-
-
-    //handle qrCode text copy
-    $( '.copy_clipboard' ).on( 'click', function(){
-        /* Get the text field */
-        var copyText = document.getElementById("qrCode_text");
-
-        /* Select the text field */
-        copyText.select();
-
-        /* Copy the text inside the text field */
-        document.execCommand("copy");
-    } );
+    }
 
 
 })( jQuery );
