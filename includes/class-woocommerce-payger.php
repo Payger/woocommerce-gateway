@@ -149,6 +149,8 @@ class Woocommerce_Payger {
 
 		//FIXME pode não estar inicializado quando o callback corre...
 		add_action( 'woocommerce_api_wc_gateway_payger', array( $plugin_admin, 'check_payger_response' ) );
+
+		add_action( 'woocommerce_cancelled_order', array( $plugin_admin, 'cancel_order' ), 10, 1 );
 	}
 
 	/**

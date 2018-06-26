@@ -221,6 +221,8 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			}
 		}
 
+		$order_id = get_query_var( 'order-pay' ) ? absint( get_query_var( 'order-pay' ) ) : 0;
+
 		if( ! empty( $options ) ) {
 			printf(
 				'<p class="form-row form-row-wide">
@@ -231,6 +233,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 					<option value="0">%4$s</option>
 						%3$s
 					</select>
+					<input type="hidden" class="order_id" value="%11$s">
 					<div id="payger_convertion" class="hide">%5$s <span class="payger_amount"></span> %6$s <span class="payger_rate"></span> = 1 %7$s</div>
 				</p>
 				<div class="hide" id="dialog" title="Payger Confirmation">
@@ -245,7 +248,8 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 				esc_html( $selling_currency ),
 				__( 'Your currency rate was recently updated. You will pay a total amount of', 'payger' ),
 				__( 'corresponding to a rate of', 'payger' ),
-				__( 'Please confirm you want to proceed with your order.', 'payger' )
+				__( 'Please confirm you want to proceed with your order.', 'payger' ),
+				$order_id
 			);
 		}
 	}
@@ -278,8 +282,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			}
 		}
 
-		//check for currency limiets
-
+		//check for currency limits
 		$args = array (
 			'asset'      => $asset,
 			'amount'     => $amount,
@@ -291,12 +294,10 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		$response = $this->payger->post( 'merchants/payments/', $args );
 
-
 		error_log('--------------------------------------------> RESPONSE');
 		error_log(print_r($response, true));
 
 		$success = ( 201 === $response['status'] ) ? true : false; //bad response if status different from 201
-
 
 		if ( $success && ! $error_message ) {
 
@@ -319,7 +320,6 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			//payment the code is still valid
 			file_put_contents( $upload_path . $filename, $data );
 
-
 			//save meta to possible queries and to show information on thank you page or emails
 			$order->add_meta_data( 'payger_currency', $asset );
 			$order->add_meta_data( 'payger_ammount', $amount );
@@ -329,7 +329,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			$order->add_meta_data( 'payger_address', $address );
 
 			// Mark as on-hold (we're awaiting the cheque)
-			$order->update_status( 'on-hold', __( 'Awaiting Payger payment', 'payger' ) );
+			$order->update_status( 'pending', __( 'Awaiting Payger payment', 'payger' ) );
 			$order->add_order_note( __( 'DEBUG PAYMENT ID ' . $payment_id, 'payger' ) );
 
 			// Reduce stock levels
@@ -355,6 +355,73 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			wc_add_notice( __('Payment error: ', 'payger') . $error_message, 'error' );
 			return;
 		}
+	}
+
+	/**
+	 * Given a cryptocurrency get it's exchange rates
+	 *
+	 * @since 1.0.0
+	 * @author Ana Aires ( ana@widgilabs.com )
+	 */
+	public function get_quote( $choosen_crypto, $order_key = false, $order_id = false ) {
+
+		$selling_currency = get_option('woocommerce_currency');
+		$amount           = $this->get_order_total();
+
+
+		if ( $order_key && ! $order_id && 0 == $amount ) {
+			$order_id =  wc_get_order_id_by_order_key( $order_key );
+		}
+
+		if( $order_id && 0 == $amount ){
+			$order   = new WC_Order( $order_id );
+			$amount  = $order->get_total();
+		}
+
+
+		$response = $this->payger->get( 'merchants/exchange-rates', array('from' => $selling_currency, 'to'=> $choosen_crypto, 'amount' => $amount ) );
+
+		//FIXME handle error
+
+		$result    = $response['data']->content->rates;
+		$result    = $result[0]; //I am interested in a single quote
+		$limit     = $result->limit;
+		$precision = $result->precision;
+		$rate      = round( $result->rate, $precision );
+		$amount    = round( $result->amount, $precision );
+
+		// will store meta info so that we can use it later
+		// to process payment
+		WC()->session->set( 'crypto_meta', array(
+			'currency'  => $choosen_crypto,
+			'rate'      => $rate,
+			'amount'    => $amount,
+			'limit'     => $limit,
+			'precision' => $precision //maybe needed but we are already setting the correct precision
+		) );
+
+		return array('rate' => $rate, 'amount'=> $amount );
+
+	}
+
+	/**
+	 * Given order id and cancel payment
+	 * @param $order_id
+	 *
+	 * @since 1.0.0
+	 * @author Ana Aires ( ana@widgilabs.com )
+	 */
+	public function cancel_payment( $order_id ) {
+
+		$order = new WC_Order( $order_id );
+
+		$payment_id = $order->get_meta('payger_payment_id');
+
+		error_log('GOING TO CANCEL ' . $payment_id );
+
+		$response = $this->payger->delete( '/merchants/payments/' . $payment_id );
+
+		error_log( print_r($response, true));
 	}
 
 }
