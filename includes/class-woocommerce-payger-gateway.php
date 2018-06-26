@@ -415,13 +415,16 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		$order = new WC_Order( $order_id );
 
-		$payment_id = $order->get_meta('payger_payment_id');
-
-		error_log('GOING TO CANCEL ' . $payment_id );
+		$payment_id = $order->get_meta('payger_payment_id', true);
+		error_log('PAYMNET ID '.$payment_id);
 
 		$response = $this->payger->delete( '/merchants/payments/' . $payment_id );
+		$response2 = $this->payger->get( '/merchants/payments/' .$payment_id );
 
+		//FIXME check for success
 		error_log( print_r($response, true));
+		error_log( '-------------------------');
+		error_log( print_r( $response2, true ) );
 	}
 
 }
