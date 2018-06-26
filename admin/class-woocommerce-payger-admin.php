@@ -229,4 +229,21 @@ class Woocommerce_Payger_Admin {
 		}
 	}
 
+	/*
+	 *
+	 */
+	public function cancel_order( $order_id ) {
+
+		$order          = new WC_Order( $order_id );
+		$payment_method = $order->get_payment_method();
+
+		//not our gateway so lets ignore
+		if ( 'payger_gateway' !== $payment_method ) {
+			return; //we only want to proceed if this is an order payed with payger
+		}
+
+		$this->payger->cancel_payment( $order_id );
+
+	}
+
 }

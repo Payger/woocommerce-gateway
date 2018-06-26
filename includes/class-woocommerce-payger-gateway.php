@@ -270,9 +270,6 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		$amount   = WC()->cart->cart_contents_total;
 		$asset    = $_POST['payger_gateway'];
 
-		error_log( 'get amount ' . $amount );
-		error_log( 'get order total ' . $this->get_order_total() );
-
 		//get session meta
 		$session_data = WC()->session->get( 'crypto_meta' );
 		if ( ! empty( $session_data ) ) {
@@ -285,8 +282,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			}
 		}
 
-		//check for currency limiets
-
+		//check for currency limits
 		$args = array (
 			'asset'      => $asset,
 			'amount'     => $amount,
@@ -298,12 +294,10 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		$response = $this->payger->post( 'merchants/payments/', $args );
 
-
 		error_log('--------------------------------------------> RESPONSE');
 		error_log(print_r($response, true));
 
 		$success = ( 201 === $response['status'] ) ? true : false; //bad response if status different from 201
-
 
 		if ( $success && ! $error_message ) {
 
@@ -325,7 +319,6 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			//always update file so that if qrcode changes for this
 			//payment the code is still valid
 			file_put_contents( $upload_path . $filename, $data );
-
 
 			//save meta to possible queries and to show information on thank you page or emails
 			$order->add_meta_data( 'payger_currency', $asset );
@@ -386,7 +379,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		}
 
 
-		$response         = $this->payger->get( 'merchants/exchange-rates', array('from' => $selling_currency, 'to'=> $choosen_crypto, 'amount' => $amount ) );
+		$response = $this->payger->get( 'merchants/exchange-rates', array('from' => $selling_currency, 'to'=> $choosen_crypto, 'amount' => $amount ) );
 
 		//FIXME handle error
 
@@ -409,6 +402,26 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		return array('rate' => $rate, 'amount'=> $amount );
 
+	}
+
+	/**
+	 * Given order id and cancel payment
+	 * @param $order_id
+	 *
+	 * @since 1.0.0
+	 * @author Ana Aires ( ana@widgilabs.com )
+	 */
+	public function cancel_payment( $order_id ) {
+
+		$order = new WC_Order( $order_id );
+
+		$payment_id = $order->get_meta('payger_payment_id');
+
+		error_log('GOING TO CANCEL ' . $payment_id );
+
+		$response = $this->payger->delete( '/merchants/payments/' . $payment_id );
+
+		error_log( print_r($response, true));
 	}
 
 }
