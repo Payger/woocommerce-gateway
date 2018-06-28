@@ -6,6 +6,7 @@
     var $amount;
     var $choosen_currency;
     var processing = false;
+    var processing_get_quote = false;
 
 
     // choose cryptocurrency on my-account trigger pay
@@ -13,7 +14,7 @@
         $('#payger_convertion').addClass('hide');
         $choosen_currency = $(this).val();
 
-        if( $choosen_currency != 0 ) {
+        if( $choosen_currency != 0 && ! processing_get_quote ) {
             handle_currency_selection($choosen_currency);
         }
     });
@@ -23,7 +24,8 @@
     jQuery(document).ajaxComplete(function () {
 
         //Change currency
-        $('#payger_gateway_coin').change(function () {
+        $('#payger_gateway_coin').change(function ( ) {
+
 
             $('#payger_convertion').addClass('hide');
 
@@ -31,7 +33,7 @@
 
             console.log( $choosen_currency);
 
-            if( $choosen_currency != 0 ) {
+            if( $choosen_currency != 0 && ! processing_get_quote ) {
                 handle_currency_selection($choosen_currency);
             }
         });
@@ -74,7 +76,12 @@
     
     function handle_currency_selection( $choosen_currency ) {
 
-        var $form         = $('.woocommerce-checkout');
+        if( processing_get_quote ) {
+            return;
+        }
+
+        processing_get_quote = true;
+        var $form            = $('.woocommerce-checkout');
 
         //hides convertion rates from previous currency
         $('#payger_convertion').addClass('hide');
@@ -134,15 +141,18 @@
 
 
                 $form.unblock();
-
+                processing_get_quote = false;
 
             },
 
             error: function( jqXHR, textStatus, errorThrown ){
+                $form.unblock();
+                processing_get_quote = false;
                 console.log( 'The following error occured: ' + textStatus, errorThrown );
             },
 
             complete: function( jqXHR, textStatus ){
+                processing_get_quote = false;
             }
 
         });

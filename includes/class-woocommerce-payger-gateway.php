@@ -386,26 +386,35 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		error_log('GET QUOTE RESPNSE');
 		error_log( print_r( $response, true ) );
 
-		//FIXME handle error
+		$success = ( 200 === $response['status'] ) ? true : false; //bad response if status different from 200
 
-		$result    = $response['data']->content->rates;
-		$result    = $result[0]; //I am interested in a single quote
-		$limit     = $result->limit;
-		$precision = $result->precision;
-		$rate      = round( $result->rate, $precision );
-		$amount    = round( $result->amount, $precision );
+		if ( $success ) {
 
-		// will store meta info so that we can use it later
-		// to process payment
-		WC()->session->set( 'crypto_meta', array(
-			'currency'  => $choosen_crypto,
-			'rate'      => $rate,
-			'amount'    => $amount,
-			'limit'     => $limit,
-			'precision' => $precision //maybe needed but we are already setting the correct precision
-		) );
 
-		return array('rate' => $rate, 'amount'=> $amount );
+			$result    = $response['data']->content->rates;
+			$result    = $result[0]; //I am interested in a single quote
+			$limit     = $result->limit;
+			$precision = $result->precision;
+			$rate      = round( $result->rate, $precision );
+			$amount    = round( $result->amount, $precision );
+
+			// will store meta info so that we can use it later
+			// to process payment
+			WC()->session->set( 'crypto_meta', array(
+				'currency'  => $choosen_crypto,
+				'rate'      => $rate,
+				'amount'    => $amount,
+				'limit'     => $limit,
+				'precision' => $precision //maybe needed but we are already setting the correct precision
+			) );
+
+			return array( 'rate' => $rate, 'amount' => $amount );
+		} else {
+			$error_message = $response['data']->error->message;
+			$error_message = apply_filters( 'payger_get_quote_error_message', $error_message );
+			wc_add_notice( __('Payment error: ', 'payger') . $error_message, 'error' );
+			return;
+		}
 
 	}
 
