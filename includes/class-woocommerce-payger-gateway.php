@@ -332,8 +332,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			$order->update_status( 'pending', __( 'Awaiting Payger payment', 'payger' ) );
 			$order->add_order_note( __( 'DEBUG PAYMENT ID ' . $payment_id, 'payger' ) );
 
-			// Reduce stock levels
-			$order->reduce_order_stock();
+			//do not reduce stock levels at this point, payment is not set
 
 			$order->save();
 
