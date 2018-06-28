@@ -129,19 +129,27 @@
 
             success: function( response, textStatus, jqXHR ){
 
-                $rate = response.data.rate;
-                $amount = response.data.amount;
+                console.log( response );
 
-                $('.payger_amount').html( $amount );
-                $('.payger_rate').html( $rate );
+                if( response.success ) {
 
-                setTimeout(function(){
-                    $('#payger_convertion').removeClass('hide');
-                }, 500);
+                    $rate = response.data.rate;
+                    $amount = response.data.amount;
+
+                    $('.payger_amount').html($amount);
+                    $('.payger_rate').html($rate);
+
+                    setTimeout(function () {
+                        $('#payger_convertion').removeClass('hide');
+                    }, 500);
 
 
-                $form.unblock();
-                processing_get_quote = false;
+                    $form.unblock();
+                    processing_get_quote = false;
+                } else {
+                    location.reload(); // shows error message
+                    return false;
+                }
 
             },
 
