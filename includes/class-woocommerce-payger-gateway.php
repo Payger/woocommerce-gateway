@@ -185,6 +185,8 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		$response = $this->payger->get( 'merchants/exchange-rates', array('from' => $selling_currency ) );
 
+		error_log( print_r( $response, true));
+
 		$currencies = array();
 
 		if ( $rates = $response['data']->content->rates ) {
@@ -332,8 +334,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			$order->update_status( 'pending', __( 'Awaiting Payger payment', 'payger' ) );
 			$order->add_order_note( __( 'DEBUG PAYMENT ID ' . $payment_id, 'payger' ) );
 
-			// Reduce stock levels
-			$order->reduce_order_stock();
+			//do not reduce stock levels at this point, payment is not set
 
 			$order->save();
 
@@ -428,15 +429,8 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		$order = new WC_Order( $order_id );
 
 		$payment_id = $order->get_meta('payger_payment_id', true);
-		error_log('PAYMNET ID '.$payment_id);
 
-		$response = $this->payger->delete( '/merchants/payments/' . $payment_id );
-		$response2 = $this->payger->get( '/merchants/payments/' .$payment_id );
-
-		//FIXME check for success
-		error_log( print_r($response, true));
-		error_log( '-------------------------');
-		error_log( print_r( $response2, true ) );
+		$response = $this->payger->delete( 'merchants/payments/' . $payment_id, array() );
 	}
 
 }
