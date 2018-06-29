@@ -6,14 +6,17 @@
     var $amount;
     var $choosen_currency;
     var processing = false;
+    var processing_get_quote = false;
 
 
     // choose cryptocurrency on my-account trigger pay
     $('#payger_gateway_coin').change(function () {
-
+        $('#payger_convertion').addClass('hide');
         $choosen_currency = $(this).val();
 
-        handle_currency_selection( $choosen_currency );
+        if( $choosen_currency != 0 && ! processing_get_quote ) {
+            handle_currency_selection($choosen_currency);
+        }
     });
 
     //needed since payment options are added to the DOM after the document ready
@@ -21,15 +24,18 @@
     jQuery(document).ajaxComplete(function () {
 
         //Change currency
-        $('#payger_gateway_coin').change(function () {
+        $('#payger_gateway_coin').change(function ( ) {
 
-            console.log(' CHANGE payger_gateway_coin ');
+
+            $('#payger_convertion').addClass('hide');
 
             $choosen_currency = $(this).val();
 
-            handle_currency_selection( $choosen_currency );
+            console.log( $choosen_currency);
 
-
+            if( $choosen_currency != 0 && ! processing_get_quote ) {
+                handle_currency_selection($choosen_currency);
+            }
         });
 
     });
@@ -44,13 +50,16 @@
     } );
 
     checkout_form.on( 'checkout_place_order', function( e ) {
-       return handle_place_order();
+        if( $choosen_currency != 0 ) {
+            return handle_place_order();
+        }
 
     });
 
     $('form#order_review #place_order').on( 'click', function(e){
-        e.preventDefault();
-        return handle_place_order();
+        if( $choosen_currency != 0 ) {
+            return handle_place_order();
+        }
     });
 
     //handle qrCode text copy
@@ -67,14 +76,15 @@
     
     function handle_currency_selection( $choosen_currency ) {
 
-        var $form         = $('.woocommerce-checkout');
+        if( processing_get_quote ) {
+            return;
+        }
+
+        processing_get_quote = true;
+        var $form            = $('.woocommerce-checkout');
 
         //hides convertion rates from previous currency
         $('#payger_convertion').addClass('hide');
-
-        if( 0 == $choosen_currency ) {
-            return;
-        }
 
 
         var order_key = false;
@@ -119,27 +129,38 @@
 
             success: function( response, textStatus, jqXHR ){
 
-                $rate = response.data.rate;
-                $amount = response.data.amount;
+                console.log( response );
 
-                $('.payger_amount').html( $amount );
-                $('.payger_rate').html( $rate );
+                if( response.success ) {
 
-                setTimeout(function(){
-                    $('#payger_convertion').removeClass('hide');
-                }, 500);
+                    $rate = response.data.rate;
+                    $amount = response.data.amount;
+
+                    $('.payger_amount').html($amount);
+                    $('.payger_rate').html($rate);
+
+                    setTimeout(function () {
+                        $('#payger_convertion').removeClass('hide');
+                    }, 500);
 
 
-                $form.unblock();
-
+                    $form.unblock();
+                    processing_get_quote = false;
+                } else {
+                    location.reload(); // shows error message
+                    return false;
+                }
 
             },
 
             error: function( jqXHR, textStatus, errorThrown ){
+                $form.unblock();
+                processing_get_quote = false;
                 console.log( 'The following error occured: ' + textStatus, errorThrown );
             },
 
             complete: function( jqXHR, textStatus ){
+                processing_get_quote = false;
             }
 
         });
@@ -183,40 +204,49 @@
 
             success: function( response, textStatus, jqXHR ){
 
-                var update_rate   = response.data.rate;
-                var update_amount = response.data.amount;
+                if( response.success ) {
 
-                if( $rate !== update_rate ){
+                    var update_rate = response.data.rate;
+                    var update_amount = response.data.amount;
 
-                    $('.update_amount').html( update_amount );
-                    $('.update_rate').html( update_rate );
-                    $( "#dialog" ).dialog({
-                        buttons: [
-                            {
-                                text: "OK",
-                                click: function() {
-                                    $( this ).dialog( "close" );
-                                    // checkout_form.off( 'checkout_place_order');
-                                    processing = true;
-                                    checkout_form.submit();
-                                    return true;
+                    if ($rate !== update_rate) {
+
+                        $('.update_amount').html(update_amount);
+                        $('.update_rate').html(update_rate);
+                        $("#dialog").dialog({
+                            buttons: [
+                                {
+                                    text: "OK",
+                                    click: function () {
+                                        $(this).dialog("close");
+                                        // checkout_form.off( 'checkout_place_order');
+                                        processing = true;
+                                        checkout_form.submit();
+                                        return true;
+                                    }
+                                },
+                                {
+                                    text: "Cancel",
+                                    click: function () {
+                                        $(this).dialog("close");
+                                        checkout_form.unblock();
+                                        processing = false;
+                                        return false;
+                                    }
                                 }
-                            },
-                            {
-                                text: "Cancel",
-                                click: function() {
-                                    $( this ).dialog( "close" );
-                                    checkout_form.unblock();
-                                    processing = false;
-                                    return false;
-                                }
-                            }
-                        ]
-                    });
-                    //rate changed so lets ask for user confirmation
+                            ]
+                        });
+                        //rate changed so lets ask for user confirmation
+                    } else {
+                        return true; //rate did not change so lets proceed
+                    }
                 } else {
-                    return true; //rate did not change so lets proceed
+                    location.reload(); // shows error message
+                    return false;
                 }
+
+                checkout_form.unblock();
+
             },
 
             error: function( jqXHR, textStatus, errorThrown ){
@@ -225,7 +255,6 @@
             }
 
         });
-
         return false;
     }
 
