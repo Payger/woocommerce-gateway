@@ -250,7 +250,7 @@
             },
 
             error: function( jqXHR, textStatus, errorThrown ){
-                console.log( 'The following error occuredxxx: ' + textStatus, errorThrown );
+                console.log( 'The following error occured: ' + textStatus, errorThrown );
                 return false;
             }
 
