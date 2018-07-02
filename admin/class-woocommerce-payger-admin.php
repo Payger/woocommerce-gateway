@@ -106,10 +106,40 @@ class Woocommerce_Payger_Admin {
 
 		require_once  plugin_dir_path(__DIR__ ) . '/includes/class-woocommerce-payger-gateway.php';
 
+		error_log('INIT PAYGER');
 		$this->payger = new Woocommerce_Payger_Gateway( );
 
 	}
 
+	/**
+	 * @since 1.0.0
+	 * @author Ana Aires ( ana@widgilabs.com )
+	 */
+	public function process_admin_options() {
+
+		if ( ! isset( $_POST['woocommerce_payger_gateway_key'] ) || empty( $_POST['woocommerce_payger_gateway_key'] ) ) {
+
+			WC_Admin_Settings::add_error( __( 'Error: You must enter API key.', 'payger' ) );
+			unset($_POST['woocommerce_payger_gateway_enabled']);
+			return false;
+		}
+
+		if ( ! isset( $_POST['woocommerce_payger_gateway_secret'] ) || empty( $_POST['woocommerce_payger_gateway_secret'] ) ) {
+
+			WC_Admin_Settings::add_error( __( 'Error: You must enter API secret.', 'payger' ) );
+			unset($_POST['woocommerce_payger_gateway_enabled']);
+			return false;
+		}
+
+		//test connection
+		$payger_instance  = $this->payger->get_instance();//$payger_instance->connect()
+		if(  ! $payger_instance->connect() ) {
+			WC_Admin_Settings::add_error( __( 'Error: Your api credentials are not valid. Please double check that you entered them correctly and try again.', 'payger' ) );
+			unset($_POST['woocommerce_payger_gateway_enabled']);
+			return false;
+		}
+		return true;
+	}
 
 	/**
 	 * Given a cryptocurrency get it's exchange rates

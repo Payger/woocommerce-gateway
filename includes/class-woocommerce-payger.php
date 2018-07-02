@@ -183,6 +183,8 @@ class Woocommerce_Payger {
 		add_action( 'woocommerce_api_wc_gateway_payger', array( $plugin_admin, 'check_payger_response' ) );
 
 		add_action( 'woocommerce_cancelled_order', array( $plugin_admin, 'cancel_order' ), 10, 1 );
+
+		add_action( 'woocommerce_update_options_payment_gateways_payger_gateway' , array( $plugin_admin, 'process_admin_options' ) );
 	}
 
 	/**

@@ -119,6 +119,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 	 * @author Ana Aires ( ana@widgilabs.com )
 	 */
 	public function init_form_fields() {
+		error_log('INIT FORM FIELDS');
 		$this->form_fields = array(
 			'enabled'     => array(
 				'title'   => __( 'Enable/Disable', 'payger' ),
@@ -169,7 +170,6 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		);
 	}
 
-
 	/**
 	 * Gets current woocommerce currency and checks which are the corresponding currencies this
 	 * merchant can offer as payment possible currencies.
@@ -181,13 +181,17 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 	 */
 	public function get_accepted_currencies_options() {
 
+		error_log('get_accepted_currencies_options');
+
 		$selling_currency = get_option('woocommerce_currency');
 
 		$response = $this->payger->get( 'merchants/exchange-rates', array('from' => $selling_currency ) );
 
-		error_log( print_r( $response, true));
-
 		$currencies = array();
+
+		if ( 200 !== $response['status'] ) {
+			return $currencies;
+		}
 
 		if ( $rates = $response['data']->content->rates ) {
 			foreach ( $rates as $rate ) {
@@ -296,8 +300,8 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		$response = $this->payger->post( 'merchants/payments/', $args );
 
-		error_log('--------------------------------------------> RESPONSE');
-		error_log(print_r($response, true));
+		error_log('--------------------------------------------> PROCESS PAYMENT');
+//		error_log(print_r($response, true));
 
 		$success = ( 201 === $response['status'] ) ? true : false; //bad response if status different from 201
 
@@ -383,7 +387,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		$response = $this->payger->get( 'merchants/exchange-rates', array('from' => $selling_currency, 'to'=> $choosen_crypto, 'amount' => $amount ) );
 
 		error_log('GET QUOTE RESPNSE');
-		error_log( print_r( $response, true ) );
+		//error_log( print_r( $response, true ) );
 
 		$success = ( 200 === $response['status'] ) ? true : false; //bad response if status different from 200
 
