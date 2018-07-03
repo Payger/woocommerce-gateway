@@ -103,6 +103,12 @@ class Woocommerce_Payger_Public {
 	public function update_thank_you( $order_id ) {
 
 		$order   = new WC_Order( $order_id );
+
+		error_log('STATUS '.$order->get_status());
+		if( 'pending' !== $order->get_status() ){
+			return;
+		}
+
 		$qrCode  = $order->get_meta('payger_qrcode');
 		$address = $order->get_meta('payger_address');
 		$currency = $order->get_meta('payger_currency');
