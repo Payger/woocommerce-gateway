@@ -45,24 +45,32 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 	{
 		require_once( 'Payger.php' );
 
-		$this->id                 = 'payger_gateway';
-		$this->icon               = 'https://payger.com/wp-content/uploads/2018/03/logo_green-350x75.png';
-		$this->has_fields         = true;
-		$this->method_title       = __( 'Payger', 'payger' );
-		$this->title       = __( 'Payger', 'payger' );
-		$this->description = __( 'Pay with cryptocurrency (powered by Payger)', 'payger' );
+		$this->id           = 'payger_gateway';
+		$this->icon         = 'https://payger.com/wp-content/uploads/2018/03/logo_green-350x75.png';
+		$this->has_fields   = true;
+		$this->method_title = __( 'Payger', 'payger' );
+		$this->title        = __( 'Payger', 'payger' );
+		$this->description  = __( 'Pay with cryptocurrency (powered by Payger)', 'payger' );
 
 
 		$key    = $this->get_option( 'key' );
 		$secret = $this->get_option( 'secret' );
 
-		//error_log('PASSEI AQUI   ');
-		$payger = new Payger();
-		$payger->setPassword( $secret );
-		$payger->setUsername( $key );
-		$payger->connect();
 
-		$this->payger = $payger;
+//		error_log('---------------------------------> ESTOU AQUI');
+
+//		error_log('NEW PAYGER SETTING USERNAME ' . $key . '  AND PASSWORD ' . $secret );
+		//$payger = new Payger();
+
+//		$payger->setPassword( $secret );
+		//maybe not set everytime
+		Payger::setUsername( $key );
+		Payger::setPassword( $secret );
+//		$payger->setUsername( $key );
+
+		Payger::connect();
+
+		//$this->payger = $payger;
 
 
 		// Load the settings.
@@ -77,9 +85,9 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
 	}
 
-	public function get_instance(){
+	/*public function get_instance(){
 		return $this->payger;
-	}
+	}*/
 
 	/**
 	 * Return the gateway's icon.
@@ -119,7 +127,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 	 * @author Ana Aires ( ana@widgilabs.com )
 	 */
 	public function init_form_fields() {
-		error_log('INIT FORM FIELDS');
+
 		$this->form_fields = array(
 			'enabled'     => array(
 				'title'   => __( 'Enable/Disable', 'payger' ),
@@ -181,11 +189,9 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 	 */
 	public function get_accepted_currencies_options() {
 
-		error_log('get_accepted_currencies_options');
-
 		$selling_currency = get_option('woocommerce_currency');
 
-		$response = $this->payger->get( 'merchants/exchange-rates', array('from' => $selling_currency ) );
+		$response = Payger::get( 'merchants/exchange-rates', array('from' => $selling_currency ) );
 
 		$currencies = array();
 
@@ -298,7 +304,8 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		$order->add_order_note( __('DEBUG CALLBACK '.WC()->api_request_url( 'WC_Gateway_Payger' ), 'payger' ) );
 
-		$response = $this->payger->post( 'merchants/payments/', $args );
+		//$response = $this->payger->post( 'merchants/payments/', $args );
+		$response = Payger::post( 'merchants/payments/', $args );
 
 		error_log('--------------------------------------------> PROCESS PAYMENT');
 //		error_log(print_r($response, true));
@@ -384,16 +391,17 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		}
 
 
-		$response = $this->payger->get( 'merchants/exchange-rates', array('from' => $selling_currency, 'to'=> $choosen_crypto, 'amount' => $amount ) );
+		//$response = $this->payger->get( 'merchants/exchange-rates', array('from' => $selling_currency, 'to'=> $choosen_crypto, 'amount' => $amount ) );
+		$response = Payger::get( 'merchants/exchange-rates', array('from' => $selling_currency, 'to'=> $choosen_crypto, 'amount' => $amount ) );
 
 		error_log('GET QUOTE RESPNSE');
-		//error_log( print_r( $response, true ) );
+		error_log( print_r( $response, true ) );
 
 		$success = ( 200 === $response['status'] ) ? true : false; //bad response if status different from 200
 
 		if ( $success ) {
 
-
+			error_log('SUCCESS');
 			$result    = $response['data']->content->rates;
 			$result    = $result[0]; //I am interested in a single quote
 			$limit     = $result->limit;
@@ -413,6 +421,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 			return array( 'rate' => $rate, 'amount' => $amount );
 		} else {
+			error_log('FAILURE');
 			$error_message = $response['data']->error->message;
 			$error_message = apply_filters( 'payger_get_quote_error_message', $error_message );
 			wc_add_notice( __('Payment error: ', 'payger') . $error_message, 'error' );
@@ -434,7 +443,8 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		$payment_id = $order->get_meta('payger_payment_id', true);
 
-		$response = $this->payger->delete( 'merchants/payments/' . $payment_id, array() );
+		//$this->payger->delete( 'merchants/payments/' . $payment_id, array() );
+		Payger::delete( 'merchants/payments/' . $payment_id, array() );
 	}
 
 }

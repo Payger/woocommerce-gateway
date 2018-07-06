@@ -30,7 +30,7 @@ Class Payger {
 	 * Variable: $token
 	 * Description:  OAuth 2.0 token
 	 */
-	protected static $_token;
+	protected static $token;
 
 	/**
 	 * Function: getNewAuthToken
@@ -68,13 +68,15 @@ Class Payger {
     {
 	    // if we do have a valid token no need to
 	    // get new one
-	    if ( self::check() ) {
+	    /*if ( self::check() ) {
 		    //error_log('TENHO VALID TOKEN');
 		    return true;
-	    }
-
+	    }*/
 
 	    $token = self::getNewAuthToken();
+
+	   // error_log('GETTING NEW TOKEN '.$token );
+
 	    if ( ! $token ) {
 		    return false;
 	    }
@@ -85,12 +87,12 @@ Class Payger {
 	/**
 	 * Function: check()
 	 * Parameters:   none
-	 * Description:  check if token is set
+	 * Description:  check if token is set and its a valid one
 	 * Returns:  TRUE on login success, otherwise FALSE
 	 */
 	public static function check()
 	{
-		if( ! self::$_token )
+		if( ! self::$token )
 			return false;
 		return true;
 	}
@@ -111,12 +113,12 @@ Class Payger {
 	 * Description:  Set $username
 	 * Returns:  returns FALSE is falsy, otherwise TRUE
 	 */
-	public function setUsername($value)
+	public static function setUsername($value)
 	{
 		if ( ! $value ) {
 			return false;
 		}
-		$this->username = $value;
+		self::$username = $value;
 		return true;
 	}
 	/**
@@ -125,11 +127,11 @@ Class Payger {
 	 * Description:  Set $password
 	 * Returns:  returns FALSE is falsy, otherwise TRUE
 	 */
-	public function setPassword($value)
+	public static function setPassword( $value )
 	{
-		if(!$value)
+		if ( ! $value )
 			return false;
-		$this->password = $value;
+		self::$password = $value;
 		return true;
 	}
 
@@ -139,18 +141,16 @@ Class Payger {
 	 * Description:  Set $token
 	 * Returns:  returns FALSE is falsy, otherwise TRUE
 	 */
-	public function setToken($value)
+	public static function setToken($value)
 	{
 		if(!$value)
 			return false;
-		self::$_token = $value;
+		self::$token = $value;
+		//error_log('JUST SET NEW TOKEN '.$value);
 		return true;
 	}
 
 	public static function exec($method, $endpoint, $obj = array()) {
-
-	//	error_log('METHOD ------------------------> '.$endpoint );
-
 
 		$url = 'https://merchant-api-{{ ENV }}.payger.com/api/v1/{{ CLASS }}'; //FIXME Payger::getUrl()
 		$url = str_replace( '{{ ENV }}', 'test', $url ); //TODO change this dynamically
@@ -207,8 +207,13 @@ Class Payger {
 
 //			$obj = "externalId=43&asset=bitcoin&amount=15.00";
 
+//			error_log('ENDPOINT '.$endpoint );
+//			error_log('USING TOKEN '.self::$token);
+//			error_log('USER '.self::$username);
+//			error_log('PASS '.self::$password);
+
 			curl_setopt( $curl, CURLOPT_HTTPHEADER, array(
-				"authorization: Bearer " . self::$_token,
+				"authorization: Bearer " . self::$token,
 				"cache-control: no-cache",
 				"content-type: application/json"
 			) );

@@ -105,7 +105,6 @@
         $.ajax({
 
             cache: false,
-            timeout: 3000,
             url: payger.ajaxurl,
             type: "get",
             data: ({
@@ -128,9 +127,6 @@
             },
 
             success: function( response, textStatus, jqXHR ){
-
-                console.log( response );
-
                 if( response.success ) {
 
                     $rate = response.data.rate;
@@ -192,7 +188,6 @@
         $.ajax({
 
             cache: false,
-            timeout: 3000,
             url: payger.ajaxurl,
             type: "get",
             data: ({

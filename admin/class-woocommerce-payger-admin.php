@@ -106,7 +106,6 @@ class Woocommerce_Payger_Admin {
 
 		require_once  plugin_dir_path(__DIR__ ) . '/includes/class-woocommerce-payger-gateway.php';
 
-		error_log('INIT PAYGER');
 		$this->payger = new Woocommerce_Payger_Gateway( );
 
 	}
@@ -131,9 +130,15 @@ class Woocommerce_Payger_Admin {
 			return false;
 		}
 
+		$key    = $_POST['woocommerce_payger_gateway_key'];
+		$secret = $_POST['woocommerce_payger_gateway_secret'];
+		Payger::setUsername( $key );
+		Payger::setPassword( $secret );
 		//test connection
-		$payger_instance  = $this->payger->get_instance();//$payger_instance->connect()
-		if(  ! $payger_instance->connect() ) {
+		//$payger_instance  = $this->payger->get_instance();//$payger_instance->connect()
+		//if(  ! $payger_instance->connect() ) {
+
+		if( ! Payger::connect() ) {
 			WC_Admin_Settings::add_error( __( 'Error: Your api credentials are not valid. Please double check that you entered them correctly and try again.', 'payger' ) );
 			unset($_POST['woocommerce_payger_gateway_enabled']);
 			return false;
@@ -160,10 +165,14 @@ class Woocommerce_Payger_Admin {
 		$key            = isset( $_GET['order_key'] ) ? $_GET['order_key'] : false;
 		$order_id       = isset( $_GET['order_id'] ) ? $_GET['order_id'] : false;
 
+		//$data = $this->payger->get_quote( $choosen_crypto, $key, $order_id  );
 		$data = $this->payger->get_quote( $choosen_crypto, $key, $order_id  );
+
 		if( is_array( $data ) ) {
+			error_log('SEND SUCCESS');
 			wp_send_json_success( $data );
 		} else {
+			error_log('SEND ERROR');
 			wp_send_json_error();
 		}
 	}
@@ -240,8 +249,9 @@ class Woocommerce_Payger_Admin {
 		$payment_id = $_POST['id'];
 
 		//perform request check status
-		$payger_instance  = $this->payger->get_instance();
-		$response         = $payger_instance->get( 'merchants/payments/' . $payment_id );
+		//$payger_instance  = $this->payger->get_instance();
+		//$response         = $payger_instance->get( 'merchants/payments/' . $payment_id );
+		$response           = Payger::get( 'merchants/payments/' . $payment_id );
 
 		$result = $response['data']->content;
 		

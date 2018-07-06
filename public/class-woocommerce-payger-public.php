@@ -85,9 +85,7 @@ class Woocommerce_Payger_Public {
 				'ajaxurl' => admin_url( 'admin-ajax.php' ),
 				'nonce'	 	=> $ajax_nonce,
 			);
-
 			wp_localize_script( $this->plugin_name, 'payger', $vars_array );
-
 		}
 	}
 
@@ -104,7 +102,6 @@ class Woocommerce_Payger_Public {
 
 		$order   = new WC_Order( $order_id );
 
-		error_log('STATUS '.$order->get_status());
 		if( 'pending' !== $order->get_status() ){
 			return;
 		}
