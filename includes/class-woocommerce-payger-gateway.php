@@ -55,22 +55,17 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		$key    = $this->get_option( 'key' );
 		$secret = $this->get_option( 'secret' );
+		$token  = get_option( 'payger_token', '' );
 
-
-//		error_log('---------------------------------> ESTOU AQUI');
-
-//		error_log('NEW PAYGER SETTING USERNAME ' . $key . '  AND PASSWORD ' . $secret );
-		//$payger = new Payger();
-
-//		$payger->setPassword( $secret );
-		//maybe not set everytime
 		Payger::setUsername( $key );
 		Payger::setPassword( $secret );
-//		$payger->setUsername( $key );
+		Payger::setToken( $token );
 
-		Payger::connect();
-
-		//$this->payger = $payger;
+		$token = Payger::connect();
+		//this will save new token if needed.
+		if( $token ) {
+			update_option( 'payger_token', $token );
+		}
 
 
 		// Load the settings.
@@ -84,10 +79,6 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		//This will save our settings
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
 	}
-
-	/*public function get_instance(){
-		return $this->payger;
-	}*/
 
 	/**
 	 * Return the gateway's icon.

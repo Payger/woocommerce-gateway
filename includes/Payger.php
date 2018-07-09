@@ -68,20 +68,19 @@ Class Payger {
     {
 	    // if we do have a valid token no need to
 	    // get new one
-	    /*if ( self::check() ) {
-		    //error_log('TENHO VALID TOKEN');
-		    return true;
-	    }*/
+	    if ( self::check() ) {
+		    error_log( 'TOKEN IS VALID' );
+		    return self::$token;
+	    }
 
+	    error_log( 'TOKEN Is IVALIDER' );
 	    $token = self::getNewAuthToken();
-
-	   // error_log('GETTING NEW TOKEN '.$token );
 
 	    if ( ! $token ) {
 		    return false;
 	    }
 	    self::setToken( $token );
-	    return true;
+	    return $token;
     }
 
 	/**
@@ -92,8 +91,21 @@ Class Payger {
 	 */
 	public static function check()
 	{
-		if( ! self::$token )
+		if( ! self::$token ) {
 			return false;
+		}
+
+		//have token lets check if it's still valid
+		$token  = self::$token;
+
+		$decoded_token = base64_decode($token);
+
+		$expire = preg_replace('/(.*)"exp":(.*),(.*)/sm', '\2', $decoded_token);
+
+		if( time() > $expire ) {
+			return false; //token expired
+		}
+
 		return true;
 	}
 
@@ -115,6 +127,7 @@ Class Payger {
 	 */
 	public static function setUsername($value)
 	{
+		error_log('SET USERNAME '.$value);
 		if ( ! $value ) {
 			return false;
 		}
@@ -146,7 +159,7 @@ Class Payger {
 		if(!$value)
 			return false;
 		self::$token = $value;
-		//error_log('JUST SET NEW TOKEN '.$value);
+		error_log('JUST SET NEW TOKEN ');
 		return true;
 	}
 
@@ -193,7 +206,7 @@ Class Payger {
 		//Get new token
 		if ( 'oauth/token' == $endpoint ) {
 
-			$post_data = "grant_type=password&username=key8&password=O5pCmkzuQx";
+			$post_data = 'grant_type=password&username=' . self::$username . '&password=' . self::$password;
 
 			curl_setopt($curl, CURLOPT_POSTFIELDS, $post_data);
 			curl_setopt($curl, CURLOPT_HTTPHEADER, array(
@@ -202,16 +215,6 @@ Class Payger {
 					"content-type: application/x-www-form-urlencoded",
 				));
 		} else {
-
-			$post_data = http_build_query($obj);
-
-//			$obj = "externalId=43&asset=bitcoin&amount=15.00";
-
-//			error_log('ENDPOINT '.$endpoint );
-//			error_log('USING TOKEN '.self::$token);
-//			error_log('USER '.self::$username);
-//			error_log('PASS '.self::$password);
-
 			curl_setopt( $curl, CURLOPT_HTTPHEADER, array(
 				"authorization: Bearer " . self::$token,
 				"cache-control: no-cache",

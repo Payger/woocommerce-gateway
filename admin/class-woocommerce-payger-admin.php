@@ -132,17 +132,20 @@ class Woocommerce_Payger_Admin {
 
 		$key    = $_POST['woocommerce_payger_gateway_key'];
 		$secret = $_POST['woocommerce_payger_gateway_secret'];
+
 		Payger::setUsername( $key );
 		Payger::setPassword( $secret );
-		//test connection
-		//$payger_instance  = $this->payger->get_instance();//$payger_instance->connect()
-		//if(  ! $payger_instance->connect() ) {
 
-		if( ! Payger::connect() ) {
+		error_log('PROCESS ADMIN OPTIONS');
+		if( ! $token = Payger::connect() ) {
 			WC_Admin_Settings::add_error( __( 'Error: Your api credentials are not valid. Please double check that you entered them correctly and try again.', 'payger' ) );
 			unset($_POST['woocommerce_payger_gateway_enabled']);
+			update_option( 'payger_token', '' );
 			return false;
 		}
+
+		update_option( 'payger_token', $token );
+
 		return true;
 	}
 
