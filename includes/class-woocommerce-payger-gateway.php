@@ -112,6 +112,22 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 	}
 
 	/**
+	 * Makes payger gateway available only if there is currencies selected
+	 * on settings page.
+	 * @return bool
+	 * @since 1.0.0
+	 * @author Ana Aires ( ana@widgilabs.com )
+	 */
+	public function is_available() {
+		$currencies = $this->get_option( 'accepted' );
+		if ( ! $currencies || empty( $currencies ) ) {
+			return false;
+		}
+
+		return parent::is_available();
+	}
+
+	/**
 	 * Process this plugin admin options for payger gateway
 	 *
 	 * @since 1.0.0
