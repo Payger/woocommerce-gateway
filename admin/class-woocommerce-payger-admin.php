@@ -136,8 +136,7 @@ class Woocommerce_Payger_Admin {
 		Payger::setUsername( $key );
 		Payger::setPassword( $secret );
 
-		error_log('PROCESS ADMIN OPTIONS');
-		if( ! $token = Payger::connect() ) {
+		if( ! $token = Payger::connect( true ) ) {
 			WC_Admin_Settings::add_error( __( 'Error: Your api credentials are not valid. Please double check that you entered them correctly and try again.', 'payger' ) );
 			unset($_POST['woocommerce_payger_gateway_enabled']);
 			update_option( 'payger_token', '' );
@@ -172,10 +171,8 @@ class Woocommerce_Payger_Admin {
 		$data = $this->payger->get_quote( $choosen_crypto, $key, $order_id  );
 
 		if( is_array( $data ) ) {
-			error_log('SEND SUCCESS');
 			wp_send_json_success( $data );
 		} else {
-			error_log('SEND ERROR');
 			wp_send_json_error();
 		}
 	}
@@ -273,6 +270,13 @@ class Woocommerce_Payger_Admin {
 			} else {
 
 				$order->add_order_note( __('Still Waiting for Payment', 'payger' ) );
+
+				//TODO Update Payment
+				//send buyer new email
+
+				//check if there was any payment
+
+				//if partially paid then update payment and get new qRCode
 			}
 		}
 	}

@@ -198,7 +198,15 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		$selling_currency = get_option('woocommerce_currency');
 
-		$response = Payger::get( 'merchants/exchange-rates', array('from' => $selling_currency ) );
+		$args = array('from' => $selling_currency, 'amount' => 10 ); //we need to pass an amoun it's a bridge requirement
+		//error_log(print_r($args, true));
+		//$response = Payger::get( 'merchants/exchange-rates', $args );
+
+		$response = Payger::get( 'merchants/currencies' );
+
+
+		//error_log('GET ACCEPTED CURRENCIES RESPONSE ');
+		//error_log( print_r( $response, true ) );
 
 		$currencies = array();
 
@@ -206,11 +214,12 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			return $currencies;
 		}
 
-		if ( $rates = $response['data']->content->rates ) {
-			foreach ( $rates as $rate ) {
-				$currencies[ $rate->asset ] = ucfirst( $rate->asset );
+		if ( $rates = $response['data']->content->currencies ) {
+			foreach ( $rates as $currency ) {
+				$currencies[ $currency->name ] = ucfirst( $currency->longName );
 			}
 		}
+		update_option('payger_possible_currencies', $currencies );
 
 		return $currencies;
 	}
@@ -232,11 +241,16 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		$currency_options = $this->get_option( 'accepted' );
 		$options          = '';
 
+		error_log('CURRENCY OPTION ');
+		error_log( print_r($currency_options, true));
+
+		$possible_currencies = get_option('payger_possible_currencies', true );
 		if ( $currency_options && ! empty( $currency_options ) ) {
 			foreach ( $currency_options as $option ) {
+
 				$options .= sprintf( '<option value="%1$s">%2$s</option>',
 					$option,
-					ucfirst( $option ) );
+					$possible_currencies[$option] );
 			}
 		}
 
@@ -398,9 +412,8 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		}
 
 
-		//$response = $this->payger->get( 'merchants/exchange-rates', array('from' => $selling_currency, 'to'=> $choosen_crypto, 'amount' => $amount ) );
-		$response = Payger::get( 'merchants/exchange-rates', array('from' => $selling_currency, 'to'=> $choosen_crypto, 'amount' => $amount ) );
-
+		$response = $this->payger->get( 'merchants/exchange-rates', array('from' => $selling_currency, 'to'=> $choosen_crypto, 'amount' => $amount ) );
+		
 		error_log('GET QUOTE RESPNSE');
 		error_log( print_r( $response, true ) );
 

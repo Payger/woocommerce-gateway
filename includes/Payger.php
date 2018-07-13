@@ -48,7 +48,6 @@ Class Payger {
 
 		$response = Payger::exec( 'POST', 'oauth/token', $obj );
 
-
 		$token = false;
 		if ( isset( $response['data'] ) ) {
 			$response = $response['data'];
@@ -64,16 +63,14 @@ Class Payger {
 	 * Returns:  TRUE on login success, otherwise FALSE
 	 *
 	 */
-	public static function connect()
+	public static function connect( $force_new_token = false )
     {
 	    // if we do have a valid token no need to
 	    // get new one
-	    if ( self::check() ) {
-		    error_log( 'TOKEN IS VALID' );
+	    if ( ! $force_new_token && self::check() ) {
 		    return self::$token;
 	    }
 
-	    error_log( 'TOKEN Is IVALIDER' );
 	    $token = self::getNewAuthToken();
 
 	    if ( ! $token ) {
@@ -127,7 +124,6 @@ Class Payger {
 	 */
 	public static function setUsername($value)
 	{
-		error_log('SET USERNAME '.$value);
 		if ( ! $value ) {
 			return false;
 		}
@@ -159,7 +155,6 @@ Class Payger {
 		if(!$value)
 			return false;
 		self::$token = $value;
-		error_log('JUST SET NEW TOKEN ');
 		return true;
 	}
 
@@ -210,7 +205,7 @@ Class Payger {
 
 			curl_setopt($curl, CURLOPT_POSTFIELDS, $post_data);
 			curl_setopt($curl, CURLOPT_HTTPHEADER, array(
-					"authorization: Basic a2V5ODpPNXBDbWt6dVF4",
+					"authorization: Basic cGF5Z2VyX3djX3BsdWdpbjo=",
 					"cache-control: no-cache",
 					"content-type: application/x-www-form-urlencoded",
 				));
