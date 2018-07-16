@@ -157,7 +157,7 @@ class Woocommerce_Payger_Admin {
 	public function get_quote() {
 
 		if ( ! isset( $_GET['to'] ) ) {
-
+			error_log('FAIL GET QUOTE AJAX TO NOT SET');
 			$error_message = apply_filters( 'payger_no_currency_error_message', __('You must choose a cryptocurrency first.', 'payger' ) );
 			wc_add_notice( __('Payment error: ', 'payger') . $error_message, 'error' );
 			wp_send_json_error();

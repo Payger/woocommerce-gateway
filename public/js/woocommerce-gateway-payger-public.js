@@ -198,8 +198,10 @@
             }),
 
             success: function( response, textStatus, jqXHR ){
+                console.log(response);
 
                 if( response.success ) {
+                    console.log('aqui');
 
                     var update_rate = response.data.rate;
                     var update_amount = response.data.amount;

@@ -241,9 +241,6 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		$currency_options = $this->get_option( 'accepted' );
 		$options          = '';
 
-		error_log('CURRENCY OPTION ');
-		error_log( print_r($currency_options, true));
-
 		$possible_currencies = get_option('payger_possible_currencies', true );
 		if ( $currency_options && ! empty( $currency_options ) ) {
 			foreach ( $currency_options as $option ) {
@@ -296,6 +293,9 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 	 * @author Ana Aires ( ana@widgilabs.com )
 	 */
 	public function process_payment( $order_id ) {
+
+		error_log('INIT PROCESS PAYMNET ');
+
 		global $woocommerce;
 		$error_message = false;
 		$order         = new WC_Order( $order_id );
@@ -329,7 +329,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		$response = Payger::post( 'merchants/payments/', $args );
 
 		error_log('--------------------------------------------> PROCESS PAYMENT');
-//		error_log(print_r($response, true));
+		error_log(print_r($response, true));
 
 		$success = ( 201 === $response['status'] ) ? true : false; //bad response if status different from 201
 
@@ -411,17 +411,14 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			$amount  = $order->get_total();
 		}
 
-
-		$response = $this->payger->get( 'merchants/exchange-rates', array('from' => $selling_currency, 'to'=> $choosen_crypto, 'amount' => $amount ) );
-		
-		error_log('GET QUOTE RESPNSE');
-		error_log( print_r( $response, true ) );
+		error_log('GET QUOTE');
+		$response = Payger::get( 'merchants/exchange-rates', array('from' => $selling_currency, 'to'=> $choosen_crypto, 'amount' => $amount ) );
+		error_log(print_r($response, true));
 
 		$success = ( 200 === $response['status'] ) ? true : false; //bad response if status different from 200
 
 		if ( $success ) {
 
-			error_log('SUCCESS');
 			$result    = $response['data']->content->rates;
 			$result    = $result[0]; //I am interested in a single quote
 			$limit     = $result->limit;
@@ -438,10 +435,8 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 				'limit'     => $limit,
 				'precision' => $precision //maybe needed but we are already setting the correct precision
 			) );
-
 			return array( 'rate' => $rate, 'amount' => $amount );
 		} else {
-			error_log('FAILURE');
 			$error_message = $response['data']->error->message;
 			$error_message = apply_filters( 'payger_get_quote_error_message', $error_message );
 			wc_add_notice( __('Payment error: ', 'payger') . $error_message, 'error' );
