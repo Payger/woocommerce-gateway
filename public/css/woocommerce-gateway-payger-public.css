@@ -26,7 +26,7 @@
     margin-left:auto;
 }
 
-/*Modal Box For Payments*/
+/* Modal Box For Payments */
 .blocker {
     position: fixed;
     top: 0; right: 0; bottom: 0; left: 0;
@@ -58,7 +58,7 @@
     box-sizing: border-box;
     width: 90%;
     background: #fff;
-    padding: 15px 30px;
+   /* padding: 15px 30px; aaires */
     -webkit-border-radius: 8px;
     -moz-border-radius: 8px;
     -o-border-radius: 8px;
@@ -139,4 +139,84 @@
            transform: scaleY(1.0);
            -webkit-transform: scaleY(1.0);
        }
+}
+
+/* Custom Modal Content */
+
+.top-header {
+    max-height: 90px;
+    color: #fff;
+    background-color: #4a9a50;
+    font-weight: 300;
+    letter-spacing: .5px;
+}
+.top-header .header {
+    display: flex;
+}
+
+.top-header .header__icon {
+    display: inline-block;
+    vertical-align: middle;
+    position: relative;
+    width: 25%;
+    height: 50px;
+    padding: 15px 15px;
+}
+
+.close-icon {
+    flex-grow: 1;
+    display: flex;
+    justify-content: flex-end;
+    padding: 13px;
+    transition: opacity 250ms ease;
+    opacity: 1;
+}
+
+.close-icon img {
+    height: 24px;
+    width: 14px;
+    cursor: pointer;
+}
+
+.top-header .timer-row {
+    display: flex;
+    align-items: center;
+    padding: 3px 14px;
+    position: relative;
+}
+
+.top-header .timer-row__progress_bar{
+    position: absolute;
+    height: 100%;
+    top: 0;
+    left: 0;
+}
+
+.top-header .timer-row__spinner{
+    display: flex;
+    margin-left: -5px;
+    margin-right: 8px;
+}
+
+bp-spinner{
+    display: flex;
+}
+
+.top-header .timer-row__spinner svg{
+    width: 17px;
+    height: 17px;
+    fill:#fff;
+    margin-top: -2px;
+}
+
+.top-header .timer-row__message{
+    flex-grow: 1;
+    font-size: 10.5px;
+    opacity: 0.7;
+    z-index: 1;
+}
+
+.top-header .timer-row__time-left {
+    font-size: 13.5px;
+    z-index: 1;
 }
