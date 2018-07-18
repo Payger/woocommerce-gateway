@@ -52,10 +52,10 @@
 							<div class="single-item-order__row">
 								<div class="single-item-order--left">
 									<div class="single-item-order--left__name">
-										Gift Off
+										Nome da Loja
 									</div>
 									<div class="single-item-order--left__description">
-										Payment for card "Google Play"
+										Payment for Nome do Produto
 									</div>
 								</div>
 

@@ -220,3 +220,188 @@ bp-spinner{
     font-size: 13.5px;
     z-index: 1;
 }
+
+.single-item-order{
+    z-index: 2px;
+}
+
+.single-item-order{
+    position: relative;
+    padding: 15px 15px 14px;
+    display: flex;
+    flex-direction: column;
+    font-weight: 300;
+    color: #565D6E;
+    letter-spacing: 0.45px;
+    background: #fff;
+}
+
+.single-item-order__row{
+    display: flex;
+    flex-direction: row;
+    padding: 0;
+    width: 100%;
+}
+
+.single-item-order--left{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    font-size: 11.5px;
+    width: 100%;
+}
+
+.single-item-order--left__name{
+    font-weight: 600;
+    margin-bottom: 4px;
+    font-size: 14px;
+}
+
+.single-item-order--left__description{
+    line-height: 16px;
+}
+
+.single-item-order__row.selected-currency{
+    border-top: 1px dashed rgba(238, 238, 238, 0.5);
+    margin:7.5px 0 -5px;
+    padding: 9px 0 0;
+}
+
+.single-item-order--left__currency{
+    font-size: 0.85rem;
+    color: #565D6E;
+    display: flex;
+    align-items: center;
+}
+
+.single-item-order--left__currency img{
+    height: 1.1em;
+    margin-right: 8px;
+}
+
+.single-item-order--right{
+    flex-grow: 1;
+    flex-shrink: 0;
+    padding-left: 20px;
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.ex-rate{
+    color: #565DE;
+    font-style: italic;
+    font-size: 11px;
+    font-weight: 300;
+}
+
+line-items.expanded{
+    height: 81px;
+    border-top: 1px solid rgba(238, 238, 238, 0.5);
+}
+
+line-items{
+    background: #FBFBFB;
+    z-index: 2;
+    position: relative;
+    display: block;
+    overflow: hidden;
+}
+
+line-items .line-items{
+    color: #565D6E;
+    padding: 0.5rem 1rem 0.5rem 1rem;
+}
+
+line-items .line-items__item{
+    display: flex;
+    font-size: 12px;
+    font-weight: 100;
+    padding: 2px 0;
+}
+
+line-items .line-items__item__label{
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+}
+
+line-items .line-items__item--total{
+    font-weight: 600;
+    margin-top: 0;
+}
+
+.bp-view{
+    padding-top: 1em;
+    padding-bottom: 2em;
+    position: absolute;
+    padding-left: 30px;
+    padding-right: 30px;
+    width: 100%;
+    z-index: 9999;
+}
+
+.bp-view.scan{
+    padding-top: .9em !important;
+    background: #f5f5f7;
+}
+
+.payment__scan{
+    position: relative;
+    text-align: center;
+}
+
+.payment-box{
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #373a3c;
+    background: #fff;
+}
+
+.fade-in-up{
+    animation-fill-mode: both;
+    animation-duration: 0.35s;
+    animation-name: fadeInUp;
+}
+
+.qr-code-container{
+    background: #fff;
+    padding:29px 10px 17px;
+    border:1px solid #e9e9e9;
+    border-radius: 5px;
+}
+
+.manual__step-one__instructions--how-to-pay{
+    padding-top:14px;
+}
+
+.content-faded, .manual__step-one__instructions, .manual__step-two__instructions{
+    text-align: center;
+    font-size:13px;
+    padding:10px 20px 30px;
+    color: #515664;
+    font-weight: 300;
+    opacity: 0.7;
+}
+
+.item-highlighter--secondary {
+    border-bottom: 1px solid rgba(58, 58, 58, 0.6);
+    color: #3a3a3a;
+}
+
+.copy-item{
+    cursor: pointer;
+}
+
+.item-highlighter--large{
+    font-size: 14px;
+}
+
+.item-highlighter{
+    position: relative;
+}
+
+.copy-item--hide{
+    display: none;
+}
