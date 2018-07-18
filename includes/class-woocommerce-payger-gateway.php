@@ -282,6 +282,9 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 				$order_id
 			);
 		}
+
+		require_once plugin_dir_path( __FILE__ ) . '/../public/partials/modal.php';
+
 	}
 
 	/**
