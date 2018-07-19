@@ -11,6 +11,19 @@
 <p><a href="#ex1" rel="modal:open">Open Modal</a></p>
 
 
+<?php
+
+	$cart_items = array();
+	if( ! WC()->cart->is_empty() ) {
+		$items = WC()->cart->get_cart();
+		foreach ( $items as $item => $values ) {
+			$_product     =  wc_get_product( $values['data']->get_id());
+			$cart_items[] = $_product->get_title();
+		}
+		$cart_items = implode( ',', $cart_items );
+	}
+?>
+
 
 <!-- Modal HTML embedded directly into document -->
 <div id="ex1" class="modal">
@@ -52,10 +65,10 @@
 				<div class="single-item-order__row">
 					<div class="single-item-order--left">
 						<div class="single-item-order--left__name">
-							Nome da Loja
+							<?php echo get_bloginfo( 'name' ); ?>
 						</div>
 						<div class="single-item-order--left__description">
-							Payment for Nome do Produto
+							<?php _e( 'Payment for: ', 'payger' ) ; echo $cart_items;  ?>
 						</div>
 					</div>
 				</div>
