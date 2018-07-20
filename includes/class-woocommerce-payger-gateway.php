@@ -502,6 +502,9 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		//$args  = $this->get_everypay_args( $order );
 
 
+		error_log('RECEIPT PAGE '.$order_id);
+		error_log(print_r($_POST, true));
+
 		require_once plugin_dir_path( __FILE__ ) . '/../public/partials/modal3.php';
 
 		echo $html;
