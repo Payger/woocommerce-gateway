@@ -87,7 +87,6 @@
         }
 
 
-       //  $( "#modal" ).trigger( "click" );
 
 
       /*  checkout_form.block({
@@ -101,6 +100,8 @@
         return true;
     }
 
+
+    $( "#modal" ).trigger( "click" );
 
 
 })( jQuery );

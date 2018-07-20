@@ -502,12 +502,9 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		//$args  = $this->get_everypay_args( $order );
 
 
-		require_once plugin_dir_path( __FILE__ ) . '/../public/partials/modal.php';
+		require_once plugin_dir_path( __FILE__ ) . '/../public/partials/modal3.php';
 
-		echo '<p>' . __( 'Thank you for your order, please click the button below to pay with credit card using Simplify Commerce by MasterCard.', 'woocommerce' ) . '</p>';
-
-
-		echo $bar;
+		echo $html;
 
 	}
 
