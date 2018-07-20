@@ -6,13 +6,14 @@
  */
 ?>
 
+<?php
 
+?>
 <!-- Link to open the modal -->
-<p><a href="#ex1" rel="modal:open">Open Modal</a></p>
+<p><a id="modal" href="#ex1" rel="modal:open" class="">Open Modal</a></p>
 
 
 <?php
-
 	$cart_items = array();
 	if( ! WC()->cart->is_empty() ) {
 		$items = WC()->cart->get_cart();
@@ -26,17 +27,16 @@
 
 
 <!-- Modal HTML embedded directly into document -->
+
 <div id="ex1" class="modal">
 
 	<div class="content">
 		<div class="top-header">
 			<div class="header">
 				<div class="header__icon">
-						<img class="header__icon__img" src="<?php echo plugin_dir_url( __FILE__ ) . '../assets/images/logo_green.png' ?>">
+						<img class="header__icon__img" src="<?php echo plugin_dir_url( __FILE__ ) . '../assets/images/logo.png' ?>">
 				</div>
-				<div class="close-icon">
-					<img src="<?php echo plugin_dir_url( __FILE__ ) . '../assets/images/close-icon.svg' ?>">
-				</div>
+
 			</div>
 
 			<div class="timer-row">
@@ -158,6 +158,8 @@
 		</div> <?php //.payment-box ?>
 
 	</div> <?php //.content?>
-
-
 </div>
+
+<?php
+
+?>

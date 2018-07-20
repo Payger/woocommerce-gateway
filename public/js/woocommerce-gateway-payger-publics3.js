@@ -81,21 +81,24 @@
 
 
     function handle_place_order() {
-        console.log('handle place order xx');
+        alert('handle place order xx');
         if( processing ) {
             return true;
         }
 
 
-        checkout_form.block({
+       //  $( "#modal" ).trigger( "click" );
+
+
+      /*  checkout_form.block({
             message: null,
             overlayCSS: {
                 background: '#fff',
                 opacity: 0.6
             }
-        });
+        });*/
 
-        return false;
+        return true;
     }
 
 

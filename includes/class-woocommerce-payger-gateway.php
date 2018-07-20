@@ -78,6 +78,9 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		//This will save our settings
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
+		// Receipt page creates POST to gateway or hosts iFrame
+		add_action( 'woocommerce_receipt_' . $this->id, array( $this, 'receipt_page' ) );
+
 	}
 
 	/**
@@ -185,44 +188,16 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		);
 	}
 
-	/**
-	 * Gets current woocommerce currency and checks which are the corresponding currencies this
-	 * merchant can offer as payment possible currencies.
-	 * exchange-rates should filter results based on from currency
-	 *
-	 * @return array
-	 * @since 1.0.0
-	 * @author Ana Aires ( ana@widgilabs.com )
-	 */
-	public function get_accepted_currencies_options() {
 
-		$selling_currency = get_option('woocommerce_currency');
-
-		$args = array('from' => $selling_currency, 'amount' => 10 ); //we need to pass an amoun it's a bridge requirement
-		//error_log(print_r($args, true));
-		//$response = Payger::get( 'merchants/exchange-rates', $args );
-
-		$response = Payger::get( 'merchants/currencies' );
+	public function validate_fields() {
 
 
-		//error_log('GET ACCEPTED CURRENCIES RESPONSE ');
-		//error_log( print_r( $response, true ) );
+		error_log(print_r($_POST, true));
 
-		$currencies = array();
+		return true;
 
-		if ( 200 !== $response['status'] ) {
-			return $currencies;
-		}
-
-		if ( $rates = $response['data']->content->currencies ) {
-			foreach ( $rates as $currency ) {
-				$currencies[ $currency->name ] = ucfirst( $currency->longName );
-			}
-		}
-		update_option('payger_possible_currencies', $currencies );
-
-		return $currencies;
 	}
+
 
 	/**
 	 * Form to output on checkout
@@ -297,7 +272,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 	 */
 	public function process_payment( $order_id ) {
 
-		error_log('INIT PROCESS PAYMNET ');
+		error_log('-----------------------------------------> INIT PROCESS PAYMNET      ');
 
 		global $woocommerce;
 		$error_message = false;
@@ -328,10 +303,19 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		$order->add_order_note( __('DEBUG CALLBACK '.WC()->api_request_url( 'WC_Gateway_Payger' ), 'payger' ) );
 
-		//$response = $this->payger->post( 'merchants/payments/', $args );
-		$response = Payger::post( 'merchants/payments/', $args );
+		error_log('CHECKOUT PAYMENT URK');
+		error_log($order->get_checkout_payment_url( true ));
 
-		error_log('--------------------------------------------> PROCESS PAYMENT');
+		return array(
+			'result'   => 'success',
+			'redirect' => $order->get_checkout_payment_url( true )
+		);
+
+
+		//$response = $this->payger->post( 'merchants/payments/', $args );
+	//	$response = Payger::post( 'merchants/payments/', $args );
+
+	/*	error_log('--------------------------------------------> PROCESS PAYMENT');
 		error_log(print_r($response, true));
 
 		$success = ( 201 === $response['status'] ) ? true : false; //bad response if status different from 201
@@ -390,7 +374,47 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			}
 			wc_add_notice( __('Payment error: ', 'payger') . $error_message, 'error' );
 			return;
+		}*/
+	}
+
+
+	/**
+	 * Gets current woocommerce currency and checks which are the corresponding currencies this
+	 * merchant can offer as payment possible currencies.
+	 * exchange-rates should filter results based on from currency
+	 *
+	 * @return array
+	 * @since 1.0.0
+	 * @author Ana Aires ( ana@widgilabs.com )
+	 */
+	public function get_accepted_currencies_options() {
+
+		$selling_currency = get_option('woocommerce_currency');
+
+		$args = array('from' => $selling_currency, 'amount' => 10 ); //we need to pass an amoun it's a bridge requirement
+		//error_log(print_r($args, true));
+		//$response = Payger::get( 'merchants/exchange-rates', $args );
+
+		$response = Payger::get( 'merchants/currencies' );
+
+
+		//error_log('GET ACCEPTED CURRENCIES RESPONSE ');
+		//error_log( print_r( $response, true ) );
+
+		$currencies = array();
+
+		if ( 200 !== $response['status'] ) {
+			return $currencies;
 		}
+
+		if ( $rates = $response['data']->content->currencies ) {
+			foreach ( $rates as $currency ) {
+				$currencies[ $currency->name ] = ucfirst( $currency->longName );
+			}
+		}
+		update_option('payger_possible_currencies', $currencies );
+
+		return $currencies;
 	}
 
 	/**
@@ -463,6 +487,28 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		//$this->payger->delete( 'merchants/payments/' . $payment_id, array() );
 		Payger::delete( 'merchants/payments/' . $payment_id, array() );
+	}
+
+
+	/**
+	 * Output redirect or iFrame form on receipt page
+	 *
+	 * @access public
+	 *
+	 * @param $order_id
+	 */
+	public function receipt_page( $order_id ) {
+		$order = wc_get_order( $order_id );
+		//$args  = $this->get_everypay_args( $order );
+
+
+		require_once plugin_dir_path( __FILE__ ) . '/../public/partials/modal.php';
+
+		echo '<p>' . __( 'Thank you for your order, please click the button below to pay with credit card using Simplify Commerce by MasterCard.', 'woocommerce' ) . '</p>';
+
+
+		echo $bar;
+
 	}
 
 }
