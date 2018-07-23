@@ -311,16 +311,20 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		//check for currency limits
 		$args = array (
-			'inputCurrency'      => $selling_currency,
-			'outputCurrency' => $asset,
-			'outputAmount'     => $amount,
-			'externalId' => $order_id,
-			'callback'   => array( 'url' => WC()->api_request_url( 'WC_Gateway_Payger' ), 'method' => 'POST' ),
-			'description' => 'description',
-			'source' => 'string1',
-			'buyerName' => 'buyer1',
-			'buyerEmailAddress' => 'ana@widgilabs.com'
 
+			'externalId' => "$order_id" ,
+			'description' => 'descriptions',
+            'inputCurrency'	=> 'BTC',
+            'outputCurrency' => 'USD',
+            'source' => 'string',
+		    'outputAmount'	=> '0.0001',
+            'buyerName'	=> 'buyer',
+		    'buyerEmailAddress'	=> 'test@test.com',
+            'ipAddress'			=> '89.154.10.130',
+			'latitude'	=> '48.144812',
+			'longitude'	=> '11.585274',
+			'callback'   => array( 'url' => WC()->api_request_url( 'WC_Gateway_Payger' ), 'method' => 'POST', 'params' => array('orderID'=> '57B25E6B-A877-4102-ADC5-473A9E701ED5') ),
+		    'metadata'	=> array( 'color' => 'red', 'quantity' => 2)
 		);
 
 		$order->add_order_note( __('DEBUG CALLBACK '.WC()->api_request_url( 'WC_Gateway_Payger' ), 'payger' ) );
