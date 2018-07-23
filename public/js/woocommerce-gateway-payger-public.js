@@ -57,6 +57,7 @@
     });
 
     $('form#order_review #place_order').on( 'click', function(e){
+        console.log('review place order');
         if( $choosen_currency != 0 ) {
             return handle_place_order();
         }
@@ -163,10 +164,10 @@
     }
 
     function handle_place_order() {
+
         if( processing ) {
             return true;
         }
-
         //needed for order-pay endpoint
         if ( $('#order_review').length ) {
             if ( 0 != $('.order_id').val()) {
@@ -206,6 +207,8 @@
 
                     if ($rate !== update_rate) {
 
+                        console.log('RATES ARE DIFFERENT');
+
                         $('.update_amount').html(update_amount);
                         $('.update_rate').html(update_rate);
                         $("#dialog").dialog({
@@ -233,6 +236,9 @@
                         });
                         //rate changed so lets ask for user confirmation
                     } else {
+                        console.log('SAME RATE PROCEED');
+                        processing = true;
+                        checkout_form.submit();
                         return true; //rate did not change so lets proceed
                     }
                 } else {

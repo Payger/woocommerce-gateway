@@ -296,40 +296,39 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 	 * @author Ana Aires ( ana@widgilabs.com )
 	 */
 	public function process_payment( $order_id ) {
+		error_log('--------------------------------------------> PROCESS PAYMENT');
+
 		global $woocommerce;
 		$error_message = false;
 		$order         = new WC_Order( $order_id );
 
+		$selling_currency = get_option('woocommerce_currency');
+
 		$amount   = WC()->cart->cart_contents_total;
+		error_log('AMOUNT '.$amount);
 		$asset    = $_POST['payger_gateway'];
 
-		//get session meta
-		$session_data = WC()->session->get( 'crypto_meta' );
-		if ( ! empty( $session_data ) ) {
-			$amount = $session_data['amount'];
-			$limits = $session_data['limit'];
-
-			if ( $amount > $limits ) {
-				$limits        = false;
-				$error_message = apply_filters( 'payger_enforce_limits', __( 'Your order amount exceeds the allowed limit for ' . $asset . '. Please choose other currency or review your order.', 'payger' ) );
-			}
-		}
 
 		//check for currency limits
 		$args = array (
-			'asset'      => $asset,
-			'amount'     => $amount,
+			'inputCurrency'      => $selling_currency,
+			'outputCurrency' => $asset,
+			'outputAmount'     => $amount,
 			'externalId' => $order_id,
 			'callback'   => array( 'url' => WC()->api_request_url( 'WC_Gateway_Payger' ), 'method' => 'POST' ),
+			'description' => 'description',
+			'source' => 'string1',
+			'buyerName' => 'buyer1',
+			'buyerEmailAddress' => 'ana@widgilabs.com'
+
 		);
 
 		$order->add_order_note( __('DEBUG CALLBACK '.WC()->api_request_url( 'WC_Gateway_Payger' ), 'payger' ) );
 
-		//$response = $this->payger->post( 'merchants/payments/', $args );
+		error_log(print_r($args, true));
 		$response = Payger::post( 'merchants/payments/', $args );
 
-		error_log('--------------------------------------------> PROCESS PAYMENT');
-//		error_log(print_r($response, true));
+			error_log(print_r($response, true));
 
 		$success = ( 201 === $response['status'] ) ? true : false; //bad response if status different from 201
 
@@ -412,7 +411,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		}
 
 
-		$response = $this->payger->get( 'merchants/exchange-rates', array('from' => $selling_currency, 'to'=> $choosen_crypto, 'amount' => $amount ) );
+		$response = Payger::get( 'merchants/exchange-rates', array('from' => $selling_currency, 'to'=> $choosen_crypto, 'amount' => $amount ) );
 		
 		error_log('GET QUOTE RESPNSE');
 		error_log( print_r( $response, true ) );
