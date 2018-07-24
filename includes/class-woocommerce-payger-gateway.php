@@ -388,6 +388,10 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			// Remove cart
 			$woocommerce->cart->empty_cart();
 
+
+			//schedule event to check this payment status
+			wp_schedule_event( time(), 'minute', 'payger_check_payment', array( 'payment_id' => $payment_id, 'order_id' => $order_id ) );
+
 			// Return thankyou redirect
 			return array(
 				'result'   => 'success',

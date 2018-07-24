@@ -110,6 +110,20 @@ class Woocommerce_Payger_Admin {
 
 	}
 
+
+	/** Add every minute interval ro recurrence array
+	 * @since 1.0.0
+	 * @author Ana Aires ( ana@widgilabs.com )
+	 */
+	public function payger_intervals( $schedules ) {
+		$schedules['minute'] = array(
+			'interval' => 60,
+			'display'  => __('Every Minute', 'payger'),
+		);
+		return $schedules;
+
+	}
+
 	/**
 	 * @since 1.0.0
 	 * @author Ana Aires ( ana@widgilabs.com )
@@ -279,6 +293,41 @@ class Woocommerce_Payger_Admin {
 				//if partially paid then update payment and get new qRCode
 			}
 		}
+	}
+
+	/**
+	 * This checks for payment status and update order accordingly
+	 * @param $payment_id
+	 * @param $order_id
+	 *
+	 * @since 1.0.0
+	 * @author Ana Aires ( ana@widgilabs.com )
+	 */
+	public function check_payment( $payment_id, $order_id ) {
+
+		error_log('I AM CHECKING PAYMENT TRIGGERD BY CRON');
+
+		$response = Payger::get( 'merchants/payments/' . $payment_id );
+		$status   = $response['data']->content->status;
+		$order    = new WC_Order( $order_id );
+
+		error_log('PAYMENT STATUS ' .$status );
+
+		switch( $status ) {
+			case 'PENDING' : break; //do nothing order still waits for payment
+			case 'PAID' :
+				if ( 'processing' !== $order->get_status() ) {
+					//change status
+					$order->update_status( 'processing', __( 'Payger Payment Confirmed', 'payger' ) );
+					$order->add_order_note( __( 'Payment is verified and completed.', 'payger' ) );
+					//TODO Delete cron job
+				}
+
+				break;
+			case 'UNDERPAID' : break;
+			case 'OVERPAID' : break;
+		}
+
 	}
 
 	/*
