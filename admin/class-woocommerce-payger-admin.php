@@ -324,8 +324,49 @@ class Woocommerce_Payger_Admin {
 				}
 
 				break;
-			case 'UNDERPAID' : break;
-			case 'OVERPAID' : break;
+			case 'UNDERPAID' :
+
+				//check for missing amount
+
+				// update order not stating there is missing amount and new email was sent
+
+				// trigger payment update
+
+				//get new qrcode
+
+				//update store values for qrcode
+
+				// trigger new email
+
+				break;
+			case 'OVERPAID' :
+				if ( 'processing' !== $order->get_status() ) {
+					//change status
+					$order->update_status( 'processing', __( 'Payger Payment Confirmed', 'payger' ) );
+
+					//TODO calculate overpaid amount
+
+					$order->add_order_note( __( 'Payment is verified and completed. The amount of ', 'payger' ) . 'X' . __(' was overpaid.', 'payger' ) );
+					//TODO Delete cron job
+				}
+				break;
+
+			case 'EXPIRED' :
+
+				// update order not stating first address for payment expired
+
+				// trigger payment update
+
+				//get new qrcode
+
+				//update store values for qrcode
+
+				//trigger new email
+
+				break;
+
+			case 'FAILED' :
+				break;
 		}
 
 	}
