@@ -173,6 +173,9 @@ class Woocommerce_Payger {
 		add_action( 'plugins_loaded',               array( $plugin_admin, 'init_gateway') );
 		add_filter( 'woocommerce_payment_gateways', array( $plugin_admin, 'add_payger_gateway_class') );
 
+		add_filter( 'cron_schedules', array( $plugin_admin, 'payger_intervals') );
+		add_action( 'payger_check_payment', array( $plugin_admin, 'check_payment' ), 10, 2 );
+
 
 		add_action( 'wp_ajax_payger_get_quote', array( $plugin_admin, 'get_quote' ) );
 		add_action( 'wp_ajax_nopriv_payger_get_quote', array( $plugin_admin, 'get_quote' ) );

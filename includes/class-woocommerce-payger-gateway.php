@@ -294,50 +294,63 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 	 */
 	public function process_payment( $order_id ) {
 
-		error_log('INIT PROCESS PAYMNET ');
-
 		global $woocommerce;
 		$error_message = false;
 		$order         = new WC_Order( $order_id );
 
+		$selling_currency = get_option('woocommerce_currency');
+
 		$amount   = WC()->cart->cart_contents_total;
 		$asset    = $_POST['payger_gateway'];
 
-		//get session meta
-		$session_data = WC()->session->get( 'crypto_meta' );
-		if ( ! empty( $session_data ) ) {
-			$amount = $session_data['amount'];
-			$limits = $session_data['limit'];
 
-			if ( $amount > $limits ) {
-				$limits        = false;
-				$error_message = apply_filters( 'payger_enforce_limits', __( 'Your order amount exceeds the allowed limit for ' . $asset . '. Please choose other currency or review your order.', 'payger' ) );
+		// Get list of items to buy
+		$cart_items = array();
+		if( ! WC()->cart->is_empty() ) {
+			$items = WC()->cart->get_cart();
+			foreach ( $items as $item => $values ) {
+				$_product     =  wc_get_product( $values['data']->get_id());
+				$cart_items[] = $_product->get_title();
 			}
+			$cart_items = implode( ',', $cart_items );
 		}
+
+		$site_name   = get_bloginfo( 'name' );
 
 		//check for currency limits
 		$args = array (
-			'asset'      => $asset,
-			'amount'     => $amount,
-			'externalId' => $order_id,
+
+			'externalId' => "$order_id" . time(),
+			'description' => $cart_items,
+            'inputCurrency'	=> $asset,
+            'outputCurrency' => $selling_currency,
+            'source' => $site_name,
+		    'outputAmount'	=> $amount,
+            'buyerName'	=> $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
+		    'buyerEmailAddress'	=> $order->get_billing_email(),
 			'callback'   => array( 'url' => WC()->api_request_url( 'WC_Gateway_Payger' ), 'method' => 'POST' ),
+		    'metadata'	=> array( 'color' => 'red', 'quantity' => 2) //TODO change this
 		);
 
 		$order->add_order_note( __('DEBUG CALLBACK '.WC()->api_request_url( 'WC_Gateway_Payger' ), 'payger' ) );
 
-		//$response = $this->payger->post( 'merchants/payments/', $args );
+
 		$response = Payger::post( 'merchants/payments/', $args );
 
-		error_log('--------------------------------------------> PROCESS PAYMENT');
-		error_log(print_r($response, true));
 
 		$success = ( 201 === $response['status'] ) ? true : false; //bad response if status different from 201
 
 		if ( $success && ! $error_message ) {
 
-			$qrCode     = $response['data']->content->qrCode;
+			error_log('SUCCESSSSSS');
+			error_log(print_r($response['data']->content, true));
+
 			$payment_id = $response['data']->content->id;
-			$address    = $response['data']->content->address;
+
+			$payment = $response['data']->content->subPayments;
+			$payment = $payment[0]; //TODO check if first payment is allways the right one
+			$qrCode     = $payment->qrCode;
+			$address    = $payment->address;
 
 			//
 			$data        = base64_decode( $qrCode->content );
@@ -372,6 +385,10 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 			// Remove cart
 			$woocommerce->cart->empty_cart();
+
+
+			//schedule event to check this payment status
+			wp_schedule_event( time(), 'minute', 'payger_check_payment', array( 'payment_id' => $payment_id, 'order_id' => $order_id ) );
 
 			// Return thankyou redirect
 			return array(
@@ -411,9 +428,9 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			$amount  = $order->get_total();
 		}
 
-		error_log('GET QUOTE');
-		$response = Payger::get( 'merchants/exchange-rates', array('from' => $selling_currency, 'to'=> $choosen_crypto, 'amount' => $amount ) );
-		error_log(print_r($response, true));
+		$args = array('from' => $selling_currency, 'to'=> $choosen_crypto, 'amount' => $amount );
+
+		$response = Payger::get( 'merchants/exchange-rates', $args );
 
 		$success = ( 200 === $response['status'] ) ? true : false; //bad response if status different from 200
 
