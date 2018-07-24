@@ -99,9 +99,11 @@ class Woocommerce_Payger_Public {
 	 */
 	public function update_thank_you( $order_id ) {
 
+		error_log('UPDATE THANK YOU PAGE');
+
 		$order   = new WC_Order( $order_id );
 
-		if( 'pending' !== $order->get_status() ){
+		if( 'on-hold' !== $order->get_status() ){
 			return;
 		}
 
