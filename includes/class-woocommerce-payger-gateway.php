@@ -305,14 +305,27 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		$asset    = $_POST['payger_gateway'];
 
 
+		// Get list of items to buy
+		$cart_items = array();
+		if( ! WC()->cart->is_empty() ) {
+			$items = WC()->cart->get_cart();
+			foreach ( $items as $item => $values ) {
+				$_product     =  wc_get_product( $values['data']->get_id());
+				$cart_items[] = $_product->get_title();
+			}
+			$cart_items = implode( ',', $cart_items );
+		}
+
+		$site_name   = get_bloginfo( 'name' );
+
 		//check for currency limits
 		$args = array (
 
 			'externalId' => "$order_id" . time(),
-			'description' => 'descriptions',
+			'description' => $cart_items,
             'inputCurrency'	=> $asset,
             'outputCurrency' => $selling_currency,
-            'source' => 'string',
+            'source' => $site_name,
 		    'outputAmount'	=> $amount,
             'buyerName'	=> $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
 		    'buyerEmailAddress'	=> $order->get_billing_email(),
@@ -334,9 +347,12 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			error_log('SUCCESSSSSS');
 			error_log(print_r($response['data']->content, true));
 
-			$qrCode     = $response['data']->content->qrCode;
 			$payment_id = $response['data']->content->id;
-			$address    = $response['data']->content->address;
+
+			$payment = $response['data']->content->subPayments;
+			$payment = $payment[0]; //TODO check if first payment is allways the right one
+			$qrCode     = $payment->qrCode;
+			$address    = $payment->address;
 
 			//
 			$data        = base64_decode( $qrCode->content );
