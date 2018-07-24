@@ -238,6 +238,7 @@
                     } else {
                         console.log('SAME RATE PROCEED');
                         processing = true;
+                        checkout_form.unblock();
                         checkout_form.submit();
                         return true; //rate did not change so lets proceed
                     }

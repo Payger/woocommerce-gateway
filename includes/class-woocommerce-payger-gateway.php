@@ -241,9 +241,6 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		$currency_options = $this->get_option( 'accepted' );
 		$options          = '';
 
-		error_log('CURRENCY OPTION ');
-		error_log( print_r($currency_options, true));
-
 		$possible_currencies = get_option('payger_possible_currencies', true );
 		if ( $currency_options && ! empty( $currency_options ) ) {
 			foreach ( $currency_options as $option ) {
@@ -305,38 +302,37 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		$selling_currency = get_option('woocommerce_currency');
 
 		$amount   = WC()->cart->cart_contents_total;
-		error_log('AMOUNT '.$amount);
 		$asset    = $_POST['payger_gateway'];
 
 
 		//check for currency limits
 		$args = array (
 
-			'externalId' => "$order_id" ,
+			'externalId' => "$order_id" . time(),
 			'description' => 'descriptions',
-            'inputCurrency'	=> 'BTC',
-            'outputCurrency' => 'USD',
+            'inputCurrency'	=> $asset,
+            'outputCurrency' => $selling_currency,
             'source' => 'string',
-		    'outputAmount'	=> '0.0001',
-            'buyerName'	=> 'buyer',
-		    'buyerEmailAddress'	=> 'test@test.com',
-            'ipAddress'			=> '89.154.10.130',
-			'latitude'	=> '48.144812',
-			'longitude'	=> '11.585274',
-			'callback'   => array( 'url' => WC()->api_request_url( 'WC_Gateway_Payger' ), 'method' => 'POST', 'params' => array('orderID'=> '57B25E6B-A877-4102-ADC5-473A9E701ED5') ),
-		    'metadata'	=> array( 'color' => 'red', 'quantity' => 2)
+		    'outputAmount'	=> $amount,
+            'buyerName'	=> $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
+		    'buyerEmailAddress'	=> $order->get_billing_email(),
+			'callback'   => array( 'url' => WC()->api_request_url( 'WC_Gateway_Payger' ), 'method' => 'POST' ),
+		    'metadata'	=> array( 'color' => 'red', 'quantity' => 2) //TODO change this
 		);
 
 		$order->add_order_note( __('DEBUG CALLBACK '.WC()->api_request_url( 'WC_Gateway_Payger' ), 'payger' ) );
 
-		error_log(print_r($args, true));
+
 		$response = Payger::post( 'merchants/payments/', $args );
 
-			error_log(print_r($response, true));
+		error_log(print_r($response, true));
 
 		$success = ( 201 === $response['status'] ) ? true : false; //bad response if status different from 201
 
 		if ( $success && ! $error_message ) {
+
+			error_log('SUCCESSSSSS');
+			error_log(print_r($response['data']->content, true));
 
 			$qrCode     = $response['data']->content->qrCode;
 			$payment_id = $response['data']->content->id;
@@ -414,8 +410,12 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			$amount  = $order->get_total();
 		}
 
+		$args = array('from' => $selling_currency, 'to'=> $choosen_crypto, 'amount' => $amount );
 
-		$response = Payger::get( 'merchants/exchange-rates', array('from' => $selling_currency, 'to'=> $choosen_crypto, 'amount' => $amount ) );
+		error_log('GET QUOTE');
+		error_log(print_r($args, true));
+
+		$response = Payger::get( 'merchants/exchange-rates', $args );
 		
 		error_log('GET QUOTE RESPNSE');
 		error_log( print_r( $response, true ) );

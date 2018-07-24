@@ -297,5 +297,4 @@ class Woocommerce_Payger_Admin {
 		$this->payger->cancel_payment( $order_id );
 
 	}
-
 }
