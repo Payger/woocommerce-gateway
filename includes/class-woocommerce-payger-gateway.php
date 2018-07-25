@@ -371,7 +371,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 			//save meta to possible queries and to show information on thank you page or emails
 			$order->add_meta_data( 'payger_currency', $asset );
-			$order->add_meta_data( 'payger_ammount', $amount );
+			$order->add_meta_data( 'payger_ammount', $payment->inputAmount   );
 			$order->add_meta_data( 'payger_qrcode', $qrCode );
 			$order->add_meta_data( 'payger_qrcode_image', $uploads['baseurl'] . $filename ); //stores qrcode url so that email can use this.
 			$order->add_meta_data( 'payger_payment_id', $payment_id );

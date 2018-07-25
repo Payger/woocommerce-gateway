@@ -305,7 +305,7 @@ class Woocommerce_Payger_Admin {
 	 */
 	public function check_payment( $payment_id, $order_id ) {
 
-		error_log('I AM CHECKING PAYMENT TRIGGERD BY CRON');
+		error_log('I AM CHECKING PAYMENT TRIGGERD BY CRON FOR '. $order_id);
 
 		$response = Payger::get( 'merchants/payments/' . $payment_id );
 		$status   = $response['data']->content->status;
@@ -316,6 +316,7 @@ class Woocommerce_Payger_Admin {
 		switch( $status ) {
 			case 'PENDING' : break; //do nothing order still waits for payment
 			case 'PAID' :
+				error_log(print_r($response, true));
 				if ( 'processing' !== $order->get_status() ) {
 					//change status
 					$order->update_status( 'processing', __( 'Payger Payment Confirmed', 'payger' ) );
@@ -325,6 +326,9 @@ class Woocommerce_Payger_Admin {
 
 				break;
 			case 'UNDERPAID' :
+
+				error_log('UNDERPAID ');
+				error_log(print_r($response, true));
 
 				//check for missing amount
 
@@ -353,8 +357,6 @@ class Woocommerce_Payger_Admin {
 
 			case 'EXPIRED' :
 
-				// update order not stating first address for payment expired
-
 				// trigger payment update
 
 				//get new qrcode
@@ -362,6 +364,9 @@ class Woocommerce_Payger_Admin {
 				//update store values for qrcode
 
 				//trigger new email
+
+				// update order not stating first address for payment expired
+				$order->add_order_note( __( 'First address for payment expired, new one sent to email ', 'payger' ) );
 
 				break;
 
