@@ -310,13 +310,19 @@ class Woocommerce_Payger_Admin {
 		$response = Payger::get( 'merchants/payments/' . $payment_id );
 		$status   = $response['data']->content->status;
 		$order    = new WC_Order( $order_id );
+		$total    = $order->get_total();
+
+		$input_currency  = $order->get_meta( 'payger_currency' );
+		$output_currency = get_option('woocommerce_currency');
+
 
 		error_log('PAYMENT STATUS ' .$status );
 
 		switch( $status ) {
 			case 'PENDING' : break; //do nothing order still waits for payment
 			case 'PAID' :
-				error_log(print_r($response, true));
+				error_log('PAID ');
+				//error_log( print_r( $response['data']->content->subPayments, true ) );
 				if ( 'processing' !== $order->get_status() ) {
 					//change status
 					$order->update_status( 'processing', __( 'Payger Payment Confirmed', 'payger' ) );
@@ -328,20 +334,79 @@ class Woocommerce_Payger_Admin {
 			case 'UNDERPAID' :
 
 				error_log('UNDERPAID ');
-				error_log(print_r($response, true));
+				error_log(print_r($response['data']->content->subPayments, true));
 
 				//check for missing amount
 
-				// update order not stating there is missing amount and new email was sent
+				$subpayments = $response['data']->content->subPayments;
+				$paid = 0;
+				foreach( $subpayments as $payment ) {
+					if ('transaction_seen' == $payment->status ) {
+						$paid = $paid + $payment->outputAmount;
+					}
+				}
+
+				$missing_value = $total - $paid ;
+
+				error_log('MISSING TO PAY '.$missing_value );
+
+				$args = array(
+					'inputCurrency' => $input_currency,
+				    'outputAmount' => $missing_value,
+                    'outputCurrency' => $output_currency
+				);
 
 				// trigger payment update
+				$response = Payger::post( 'merchants/payments/' . $payment_id . '/address', $args );
 
-				//get new qrcode
+				error_log('UPDATED PAYMENT RESPONSE');
+				error_log(print_r( $response, true ) );
 
-				//update store values for qrcode
+				$success = ( 201 === $response['status'] ) ? true : false; //bad response if status different from 201
 
-				// trigger new email
+				if ( $success ) {
 
+					$payment = $response['data']->content->subPayments;
+					$payment = $payment[0]; //TODO check if first payment is allways the right one
+					$qrCode  = $payment->qrCode;
+					$address = $payment->address;
+
+					//
+					$data        = base64_decode( $qrCode->content );
+					$uploads     = wp_upload_dir();
+					$upload_path = $uploads['basedir'];
+					$filename    = '/payger_tmp/' . $order_id . '.png';
+
+					// create temporary directory if does not exists
+					if ( ! file_exists( $upload_path . '/payger_tmp' ) ) {
+						mkdir( $upload_path . '/payger_tmp' );
+					}
+
+					//always update file so that if qrcode changes for this
+					//payment the code is still valid
+					file_put_contents( $upload_path . $filename, $data );
+
+
+					//update store values for qrcode
+					$order->add_meta_data( 'payger_ammount', $payment->inputAmount   );
+					$order->add_meta_data( 'payger_qrcode', $qrCode );
+					$order->add_meta_data( 'payger_qrcode_image', $uploads['baseurl'] . $filename ); //stores qrcode url so that email can use this.
+					$order->add_meta_data( 'payger_address', $address );
+
+					// trigger new email
+					//TODO fix me this should be new email
+					$mailer = WC()->mailer();
+					$mails = $mailer->get_emails();
+					foreach ( $mails as $mail ) {
+						if ( $mail->id == 'new_order' ) {
+							$mail->trigger( $order_id );
+						}
+					}
+
+					// update order not stating there is missing amount and new email was sent
+					$order->add_order_note( __( 'Payment is verified but not completed. Missing amount of ', 'payger' ) . $missing_value . __( 'an email was sent to the buyer.', 'payger' ) );
+
+				}
 				break;
 			case 'OVERPAID' :
 				if ( 'processing' !== $order->get_status() ) {
@@ -357,13 +422,37 @@ class Woocommerce_Payger_Admin {
 
 			case 'EXPIRED' :
 
+				if( $order_id != 158 ){
+					break;
+				}
+				error_log('EXPIRED ');
+
+				$args = array(
+					'inputCurrency' => $input_currency,
+					'outputAmount' => $total,
+					'outputCurrency' => $output_currency
+				);
+
 				// trigger payment update
+				$response = Payger::post( 'merchants/payments/' . $payment_id . '/address', $args );
+
+				error_log('UPDATED PAYMENT RESPONSE');
+				error_log(print_r($args,true));
+				error_log(print_r( $response, true ) );
 
 				//get new qrcode
 
 				//update store values for qrcode
 
 				//trigger new email
+				//TODO fix me this should be new email
+				$mailer = WC()->mailer();
+				$mails = $mailer->get_emails();
+				foreach ( $mails as $mail ) {
+					if ( $mail->id == 'new_order' ) {
+						$mail->trigger( $order_id );
+					}
+				}
 
 				// update order not stating first address for payment expired
 				$order->add_order_note( __( 'First address for payment expired, new one sent to email ', 'payger' ) );
