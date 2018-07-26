@@ -532,11 +532,15 @@ class Woocommerce_Payger_Admin {
 	 */
 
 	public function trigger_email( $order_id, $email_id ) {
+
+		error_log('TRY TO SEND EMAIL '. $email_id . ' FOR '.$order_id );
+
 		$mailer = WC()->mailer();
 		$mails = $mailer->get_emails();
 
 		foreach ( $mails as $mail ) {
 			if ( $mail->id == $email_id ) {
+				error_log('TRIGGERED');
 				$mail->trigger( $order_id );
 			}
 		}

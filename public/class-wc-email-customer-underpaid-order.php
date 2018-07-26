@@ -49,7 +49,7 @@ class WC_Email_Customer_Underpaid_Order extends WC_Email {
 	 * @return string
 	 */
 	public function get_default_subject() {
-		return __( 'Your {site_title} order receipt from {order_date}', 'woocommerce' );
+		return __( 'Your {site_title} order notification', 'woocommerce' );
 	}
 
 	/**
@@ -69,6 +69,8 @@ class WC_Email_Customer_Underpaid_Order extends WC_Email {
 	 * @param WC_Order $order Order object.
 	 */
 	public function trigger( $order_id, $order = false ) {
+
+		error_log('TRIGGER CUSTOMER UNDERPAID EMAIL');
 
 		$this->setup_locale();
 
@@ -103,7 +105,8 @@ class WC_Email_Customer_Underpaid_Order extends WC_Email {
 			'sent_to_admin' => false,
 			'plain_text'    => false,
 			'email'         => $this,
-		) );
+		),
+			plugin_dir_path( __FILE__ ) , plugin_dir_path( __FILE__ ) );
 	}
 
 	/**
@@ -119,7 +122,7 @@ class WC_Email_Customer_Underpaid_Order extends WC_Email {
 			'sent_to_admin' => false,
 			'plain_text'    => true,
 			'email'			=> $this,
-		) );
+		), plugin_dir_path( __FILE__ ) , plugin_dir_path( __FILE__ ) );
 	}
 }
 
