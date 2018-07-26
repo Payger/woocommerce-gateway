@@ -207,6 +207,8 @@ class Woocommerce_Payger {
 		add_action( 'woocommerce_thankyou_payger_gateway', array( $plugin_public, 'update_thank_you' ), 10, 1 );
 		add_action( 'woocommerce_view_order', array( $plugin_public, 'update_thank_you' ), 10, 1);
 
+		add_filter( 'woocommerce_email_classes', array( $plugin_public, 'add_payger_emails' ), 10, 1 );
+
 	}
 
 	/**
