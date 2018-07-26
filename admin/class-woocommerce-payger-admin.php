@@ -320,8 +320,6 @@ class Woocommerce_Payger_Admin {
 
 		switch( $status ) {
 			case 'PENDING' :
-			    $this->trigger_email( $order_id, 'customer_underpaid_order' ); //TODO REMOVE
-
 				break; //do nothing order still waits for payment
 			case 'PAID' :
 				error_log('PAID ');
@@ -329,7 +327,6 @@ class Woocommerce_Payger_Admin {
 					//change status
 					$order->update_status( 'processing', __( 'Payger Payment Confirmed', 'payger' ) );
 					$order->add_order_note( __( 'Payment is verified and completed.', 'payger' ) );
-					//TODO Delete cron job
 				}
 
 				//clear hook for this payment
@@ -417,6 +414,7 @@ class Woocommerce_Payger_Admin {
 						}
 					}
 					$overpaid = $paid - $total;
+					error_log('OVERPAID '. $overpaid);
 
 					//change status
 					$order->update_status( 'processing', __( 'Payger Payment Confirmed', 'payger' ) );
@@ -485,7 +483,7 @@ class Woocommerce_Payger_Admin {
 					//update store values for qrcode
 
 					//trigger new email
-					$this->trigger_email( $order_id, 'on-hold' );
+					$this->trigger_email( $order_id, 'new_order' );
 
 					// update order not stating first address for payment expired
 					$order->add_order_note( __( 'First address for payment expired, new one sent to email ', 'payger' ) );

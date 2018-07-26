@@ -49,7 +49,7 @@ class WC_Email_Customer_Underpaid_Order extends WC_Email {
 	 * @return string
 	 */
 	public function get_default_subject() {
-		return __( 'Your {site_title} order notification', 'woocommerce' );
+		return __( 'Your {site_title} underpaid order notification', 'payger' );
 	}
 
 	/**
@@ -59,7 +59,7 @@ class WC_Email_Customer_Underpaid_Order extends WC_Email {
 	 * @return string
 	 */
 	public function get_default_heading() {
-		return __( 'Thank you for your order', 'woocommerce' );
+		return __( 'Thank you for your order', 'payger' );
 	}
 
 	/**
@@ -69,8 +69,6 @@ class WC_Email_Customer_Underpaid_Order extends WC_Email {
 	 * @param WC_Order $order Order object.
 	 */
 	public function trigger( $order_id, $order = false ) {
-
-		error_log('TRIGGER CUSTOMER UNDERPAID EMAIL');
 
 		$this->setup_locale();
 
