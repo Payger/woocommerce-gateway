@@ -38,3 +38,6 @@ $dirname     = $upload_path . '/payger_tmp/';
 array_map('unlink', glob("$dirname/*.*"));
 rmdir( $dirname );
 
+
+//Clear all schedule hooks
+wp_clear_scheduled_hook( 'payger_check_payment' );

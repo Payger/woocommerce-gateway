@@ -374,6 +374,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			$order->add_meta_data( 'payger_qrcode_image', $uploads['baseurl'] . $filename ); //stores qrcode url so that email can use this.
 			$order->add_meta_data( 'payger_payment_id', $payment_id );
 			$order->add_meta_data( 'payger_address', $address );
+			$order->add_meta_data( 'payger_expired', 0); //controls number of expirations
 
 			// Mark as on-hold (we're awaiting the cheque)
 			$order->update_status( 'on-hold', __( 'Awaiting Payger payment', 'payger' ) );

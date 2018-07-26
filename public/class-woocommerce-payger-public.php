@@ -137,4 +137,14 @@ class Woocommerce_Payger_Public {
 		}
 	}
 
+
+	/*
+	 * Extend woocommerce emails with Underpaid one
+	 */
+	public function add_payger_emails( $emails ) {
+		require( 'class-wc-email-customer-underpaid-order.php' );
+		$emails['WC_Email_Customer_Underpaid'] = new WC_Email_Customer_Underpaid_Order();
+		return $emails;
+	}
+
 }
