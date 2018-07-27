@@ -8,23 +8,14 @@
     var processing = false;
     var processing_get_quote = false;
 
-    var iframe = document.createElement('iframe');
-    iframe.name = 'bitpay';
-    iframe.class = 'bitpay';
-    iframe.setAttribute('allowtransparency', 'true');
-    iframe.style.display = 'none';
-    iframe.style.border = 0;
-    iframe.style.position = 'fixed';
-    iframe.style.top = 0;
-    iframe.style.left = 0;
-    iframe.style.height = '100%';
-    iframe.style.width = '100%';
-    iframe.style.zIndex = '2147483647';
 
     //handle qrCode text copy
     $( '.copy_clipboard' ).on( 'click', function(){
         /* Get the text field */
         var copyText = document.getElementById("qrCode_text");
+
+        console.log('aqui');
+        console.log(copyText);
 
         /* Select the text field */
         copyText.select();
@@ -33,6 +24,11 @@
         document.execCommand("copy");
     } );
 
+    //Copy for the modal
+    $('.copy-item span').on('click', function() {
+
+        var msg = window.prompt("Copy this address", $('#address').val() );
+    });
 
 
 

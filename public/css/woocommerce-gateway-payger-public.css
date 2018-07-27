@@ -20,6 +20,10 @@
     float: left;
 }
 
+#qrCode_text.modal {
+    display: none;
+}
+
 .copy_clipboard {
     align-items: center;
     display: flex;

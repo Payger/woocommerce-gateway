@@ -160,7 +160,7 @@ $html .= '<div class="single-item-order--left__name">';
 $html .=  $site_name;
 $html .= '</div>';
 $html .= '<div class="single-item-order--left__description">';
-$html .= __( 'Payment for: ', 'payger' ) . $cart_items;
+$html .= __( 'Payment for: ', 'payger' ) . $description;
 $html .= '</div>';
 $html .= '</div>';
 $html .= '</div>';
@@ -215,12 +215,9 @@ $html .= '<div class="payment-box">
 						<manual-box>
 							<div ngxclipboard="">
 								<div class="copy-item">
+									<input id="address" type="hidden" value="' . $address . ' ">
 									<span class="item-highlighter item-highlighter--large item-highlighter--primary" i18n="">Copy payment URL</span>
-									<img src="assets/images/copy-icon.svg">
-								</div>
-								<div class="copy-item--hide">
-									<span class="item-highlighter item-highlighter--large item-highlighter--primary" i18n="">Copied</span>
-									<img src="assets/images/check-blue.svg">
+									<img src="' . plugin_dir_url( __FILE__ ) . '../assets/images/copy-icon.svg">
 								</div>
 							</div>
 						</manual-box>
