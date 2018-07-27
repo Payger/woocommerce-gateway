@@ -89,21 +89,11 @@
 
 
     function handle_place_order() {
-        alert('handle place order xx');
         if( processing ) {
             return true;
         }
 
 
-
-
-      /*  checkout_form.block({
-            message: null,
-            overlayCSS: {
-                background: '#fff',
-                opacity: 0.6
-            }
-        });*/
 
         return true;
     }
@@ -197,9 +187,13 @@
     }
 
 
-    console.log('CHOOSEN CURRENCY');
-    console.log($choosen_currency);
-    $( "#modal" ).trigger( "click" );
+    // Can't do this on handle_place_order since we need this to redirect
+    // to pay-order page where order id is already created and we can properly
+    // generate payment.
+    if( $('body').hasClass('woocommerce-order-pay') ) {
+        //trigger the modal on order pay page.
+        $("#modal").trigger("click");
+    }
 
 
 })( jQuery );
