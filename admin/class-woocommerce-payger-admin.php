@@ -349,6 +349,10 @@ class Woocommerce_Payger_Admin {
 
 				$missing_value = $total - $paid ;
 
+				// update order not stating there is missing amount and new email was sent
+				$order->add_order_note( __( 'Payment is verified but not completed. Missing amount of ', 'payger' ) . $missing_value . __( 'an email was sent to the buyer.', 'payger' ) );
+
+
 				error_log('MISSING TO PAY '.$missing_value );
 
 				$args = array(
@@ -396,10 +400,6 @@ class Woocommerce_Payger_Admin {
 
 					// trigger new email
 					$this->trigger_email( $order_id, 'customer_underpaid_order' );
-
-					// update order not stating there is missing amount and new email was sent
-					$order->add_order_note( __( 'Payment is verified but not completed. Missing amount of ', 'payger' ) . $missing_value . __( 'an email was sent to the buyer.', 'payger' ) );
-
 				}
 				break;
 			case 'OVERPAID' :
