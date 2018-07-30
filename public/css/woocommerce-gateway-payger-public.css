@@ -209,6 +209,7 @@ bp-spinner{
 .top-header .timer-row__spinner svg{
     width: 17px;
     height: 17px;
+    animation: spin 0.5s linear infinite;
     fill:#fff;
     margin-top: -2px;
 }

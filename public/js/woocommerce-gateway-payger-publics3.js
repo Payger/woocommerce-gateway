@@ -192,4 +192,47 @@
     }
 
 
+
+    //Sets modal timer with 15 min countdown
+    if( $('.timer-row__time-left').length ) {
+
+        var end = new Date();
+        end.setMinutes(end.getMinutes() + 15);
+        var countDownDate = end.getTime();
+
+
+        // Update the count down every 1 second
+        var x = setInterval(function() {
+            console.log('every second');
+
+            // Get todays date and time
+            var now = new Date().getTime();
+
+            // Find the distance between now an the count down date
+            var distance = countDownDate - now;
+
+            console.log('DISTANCE ' + distance);
+
+            // Time calculations for days, hours, minutes and seconds
+            var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            console.log( 'minutes ' + minutes );
+            console.log( 'seconds ' + seconds);
+
+            // Display the result in the element with id="demo"
+            $('.timer-row__time-left').html(minutes + ":" + seconds);
+
+            // If the count down is finished, write some text
+            if (distance < 0) {
+                clearInterval(x);
+                $('.timer-row__time-left').html( "EXPIRED");
+                $('bp-spinner').hide();
+                $('.timer-row__message').hide();
+            }
+        }, 1000);
+
+    }
+
+
 })( jQuery );

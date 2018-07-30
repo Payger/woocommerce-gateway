@@ -149,7 +149,7 @@ $html .= '<span>';
 $html .= '<span i18n="">Awaiting Payment...</span>';
 $html .= '</span>';
 $html .= '</div>';
-$html .= '<div class="timer-row__time-left">14:22</div>';
+$html .= '<div class="timer-row__time-left">15:00</div>';
 $html .= '</div>'; //.timer-row
 $html .= '</div>'; //.top-header
 $html .= '<div class="order-details">';
