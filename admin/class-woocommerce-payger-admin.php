@@ -319,8 +319,8 @@ class Woocommerce_Payger_Admin {
 		error_log('PAYMENT STATUS ' .$status );
 
 		switch( $status ) {
-		//	case 'PENDING' :
-		//		break; //do nothing order still waits for payment
+			case 'PENDING' :
+				break; //do nothing order still waits for payment
 			case 'PAID' :
 				error_log('PAID ');
 				if ( 'processing' !== $order->get_status() ) {
@@ -333,7 +333,7 @@ class Woocommerce_Payger_Admin {
 				wp_clear_scheduled_hook( 'payger_check_payment', array( 'payment_id' => $payment_id, 'order_id' => $order_id ) );
 
 				break;
-			case 'PENDING' :
+			case 'UNDERPAID' :
 
 				error_log('UNDERPAID ');
 
@@ -364,8 +364,8 @@ class Woocommerce_Payger_Admin {
 				// trigger payment update
 				$response = Payger::post( 'merchants/payments/' . $payment_id . '/address', $args );
 
-				error_log(print_r($response, true));
-				$success = ( 201 === $response['status'] ) ? true : false; //bad response if status different from 201
+				//202 successfully updated
+				$success = ( 202 === $response['status'] ) ? true : false; //bad response if status different from 201
 
 				if ( $success ) {
 
@@ -448,7 +448,8 @@ class Woocommerce_Payger_Admin {
 				$response = Payger::post( 'merchants/payments/' . $payment_id . '/address', $args );
 
 				//get new qrcode
-				$success = ( 201 === $response['status'] ) ? true : false; //bad response if status different from 201
+				//202 successfully updated
+				$success = ( 202 === $response['status'] ) ? true : false; //bad response if status different from 201
 
 				if ( $success ) {
 
