@@ -350,7 +350,7 @@ class Woocommerce_Payger_Admin {
 				$missing_value = $total - $paid ;
 
 				// update order not stating there is missing amount and new email was sent
-				$order->add_order_note( __( 'Payment is verified but not completed. Missing amount of ', 'payger' ) . $missing_value . $output_currency . __( 'an email was sent to the buyer.', 'payger' ) );
+				$order->add_order_note( __( 'Payment is verified but not completed. Missing amount of ', 'payger' ) . $missing_value . $output_currency . __( ' an email was sent to the buyer.', 'payger' ) );
 
 
 				error_log('MISSING TO PAY '.$missing_value );
@@ -370,8 +370,12 @@ class Woocommerce_Payger_Admin {
 				if ( $success ) {
 
 					$payments = $response['data']->content->subPayments;
+					error_log('SUBPAYMENTS');
+					error_log(print_r($subpayments, true));
 					$size     = count( $payments );
-					$payment = $payments[ $size - 1 ];
+					$payment = $payments[ 0 ];
+					error_log('PAYMENT');
+					error_log(print_r($payment, true));
 					$qrCode  = $payment->qrCode;
 					$address = $payment->address;
 
