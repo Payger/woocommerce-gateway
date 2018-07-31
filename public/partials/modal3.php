@@ -29,55 +29,57 @@ if( empty( $session_data ) ) {
 
 $order = new WC_Order( $order_id );
 
-$name =  $order->get_billing_first_name() . ' ' . $order->get_billing_first_name();
+$name  = $order->get_billing_first_name() . ' ' . $order->get_billing_first_name();
 $email = $order->get_billing_email();
+$items = $order->get_items();
 
-// Get list of items to buy
+// Get list of items to buy to have a proper description
 $cart_items = array();
-if( ! WC()->cart->is_empty() ) {
-	$items = WC()->cart->get_cart();
-	foreach ( $items as $item => $values ) {
-		$_product     =  wc_get_product( $values['data']->get_id());
-		$cart_items[] = $_product->get_title();
+if( ! empty( $items ) ) {
+	foreach ( $items as $item ) {
+		$cart_items[] = $item->get_name();
 	}
-	$cart_items = implode( ',', $cart_items );
 }
+$cart_items = implode( ',', $cart_items );
 
-$site_name   = get_bloginfo( 'name' );
-$currency    = $session_data['currency'];
-$rate        = $session_data['rate'];
-$amount      = $order->get_total();
-$description = __( 'Payment for: ', 'payger' ) . $cart_items;
-
-
+//Collect data for request
+$site_name        = get_bloginfo( 'name' );
+$currency         = $session_data['currency'];
+$rate             = $session_data['rate'];
+$amount           = $order->get_total();
+$description      = __( 'Payment for: ', 'payger' ) . $cart_items;
 $selling_currency = get_option('woocommerce_currency');
 
-$error_message = false;
 
-$args = array (
+$success = false;
+//we already have this data so we are not creating a new payment
+if ( $order->get_meta('payger_qrcode', true ) ) {
 
-	'externalId'        => "$order_id" . time(),
-	'description'       => $description,
-	'inputCurrency'	    => $currency,
-	'outputCurrency'    => $selling_currency,
-	'source'            => $site_name,
-	'outputAmount'	    => $amount,
-	'buyerName'	        => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
-	'buyerEmailAddress'	=> $order->get_billing_email(),
-	'callback'          => array( 'url' => WC()->api_request_url( 'WC_Gateway_Payger' ), 'method' => 'POST' ),
-);
+	$qrCode       = $order->get_meta( 'payger_qrcode', true );
+	$address      = $order->get_meta( 'payger_address', true );
+	$input_amount = $order->get_meta( 'payger_ammount', true );
+} else {
+	$args = array (
+		'externalId'        => "$order_id" . time(),
+		'description'       => $description,
+		'inputCurrency'	    => $currency,
+		'outputCurrency'    => $selling_currency,
+		'source'            => $site_name,
+		'outputAmount'	    => $amount,
+		'buyerName'	        => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
+		'buyerEmailAddress'	=> $order->get_billing_email(),
+		'callback'          => array( 'url' => WC()->api_request_url( 'WC_Gateway_Payger' ), 'method' => 'POST' ),
+	);
 
-$order->add_order_note( __('DEBUG CALLBACK '.WC()->api_request_url( 'WC_Gateway_Payger' ), 'payger' ) );
+	$order->add_order_note( __('DEBUG CALLBACK '.WC()->api_request_url( 'WC_Gateway_Payger' ), 'payger' ) );
 
+	$response = Payger::post( 'merchants/payments/', $args );
 
-$response = Payger::post( 'merchants/payments/', $args );
+	$success = ( 201 === $response['status'] ) ? true : false; //bad response if status different from 201
 
-error_log('RESPNSE ');
-error_log( print_r($response, true));
+}
 
-$success = ( 201 === $response['status'] ) ? true : false; //bad response if status different from 201
-
-if ( $success && ! $error_message ) {
+if ( $success ) {
 
 	$payment = $response['data']->content->subPayments;
 	$payment = $payment[0];
@@ -102,9 +104,11 @@ if ( $success && ! $error_message ) {
 
 	$qrcode_img = $uploads['baseurl'] . $filename;
 
+	$input_amount = $payment->inputAmount;
+
 	//save meta to possible queries and to show information on thank you page or emails
 	$order->add_meta_data( 'payger_currency', $asset );
-	$order->add_meta_data( 'payger_ammount',  $payment->inputAmount  );
+	$order->add_meta_data( 'payger_ammount',  $input_amount  );
 	$order->add_meta_data( 'payger_qrcode', $qrCode );
 	$order->add_meta_data( 'payger_qrcode_image', $qrcode_img ); //stores qrcode url so that email can use this.
 	$order->add_meta_data( 'payger_payment_id', $payment_id );
@@ -192,7 +196,7 @@ $html .= '<line-items class="expanded">
 				<div>
 					<div class="line-items__item">
 						<div class="line-items__item__label" i18n="">' . __('Payment Amount', 'payger') . '</div>
-						<div class="line-items__item__value">' . $payment->inputAmount . ' '. $currency .'</div>
+						<div class="line-items__item__value">' . $input_amount . ' '. $currency .'</div>
 					</div>
 					<div class="line-items__item">
 						<div class="line-items__item__label">
@@ -205,7 +209,7 @@ $html .=				'</a>
 					</div>
 					<div class="line-items__item line-items__item--total">
 						<div class="line-items__item__label" i18n="">' . __('Total', 'payger') . '</div>
-						<div class="line-items__item__value">' . $payment->inputAmount . ' '. $currency .'</div>
+						<div class="line-items__item__value">' . $input_amount . ' '. $currency .'</div>
 					</div>
 				</div>
 				</div>

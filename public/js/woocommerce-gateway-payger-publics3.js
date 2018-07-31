@@ -196,55 +196,81 @@
     //Sets modal timer with 15 min countdown
     if( $('.timer-row__time-left').length ) { // I am at the modal
 
+        var counting          = false;
         var order_min_counter = 'minutes_counter_'  + $('.order_id').val();
         var order_sec_counter = 'seconds_counter_'  + $('.order_id').val();
 
 
-        if ( ! localStorage.getItem(order_min_counter) ) {
+        //Init to 15 minutes
+        if ( null == localStorage.getItem(order_min_counter) ) {
             localStorage.setItem(order_min_counter, 15);
         }
-        if ( ! localStorage.getItem(order_sec_counter) ) {
+        if ( null == localStorage.getItem(order_sec_counter) ) {
             localStorage.setItem(order_sec_counter, 0);
         }
 
+        var minutesx = parseInt( localStorage.getItem(order_min_counter) );
+        var secondsx = parseInt( localStorage.getItem(order_sec_counter) );
+
+
+        if ( null != minutesx && minutesx > 0 ) {
+            //we hate still minutes to process the payment
+            counting = true;
+        } else {
+            //payment expired
+            $('.timer-row__time-left').html("0:0");
+            $('bp-spinner').hide();
+            $('.timer-row__message').hide();
+            $('.timer-row__message.error').show();
+            $('.top-header .timer-row').addClass('error');
+        }
 
 
         var end = new Date();
-        end.setMinutes(end.getMinutes() + 1);
+
+        end.setMinutes(end.getMinutes() + minutesx);
+        end.setSeconds(end.getSeconds() + secondsx);
+
+        console.log(end);
+
         var countDownDate = end.getTime();
 
 
         // Update the count down every 1 second
-        var x = setInterval(function() {
+        if( counting ) {
+            var x = setInterval(function () {
 
-            // Get todays date and time
-            var now = new Date().getTime();
+                console.log('UPDATE COUNT');
 
-            // Find the distance between now an the count down date
-            var distance = countDownDate - now;
+                // Get todays date and time
+                var now = new Date().getTime();
 
-            // Time calculations for days, hours, minutes and seconds
-            var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                // Find the distance between now an the count down date
+                var distance = countDownDate - now;
 
-            localStorage.setItem(order_min_counter, minutes);
-            localStorage.setItem(order_sec_counter, seconds);
+                // Time calculations for days, hours, minutes and seconds
+                var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                localStorage.setItem(order_min_counter, minutes);
+                localStorage.setItem(order_sec_counter, seconds);
 
 
-            // Display the result in the element with id="demo"
-            $('.timer-row__time-left').html(localStorage.getItem(order_min_counter) + ":" + localStorage.getItem(order_sec_counter));
+                // Display the result in the element with id="demo"
+                $('.timer-row__time-left').html(localStorage.getItem(order_min_counter) + ":" + localStorage.getItem(order_sec_counter));
 
-            // If the count down is finished, write some text
-            if (distance < 0) {
-                clearInterval(x);
-                $('.timer-row__time-left').html( "0:0");
-                $('bp-spinner').hide();
-                $('.timer-row__message').hide();
-                $('.timer-row__message.error').show();
-                $('.top-header .timer-row').addClass('error');
-            }
-        }, 1000);
-
+                // If the count down is finished, write some text
+                if (distance < 0) {
+                    counting = false;
+                    clearInterval(x);
+                    $('.timer-row__time-left').html("0:0");
+                    $('bp-spinner').hide();
+                    $('.timer-row__message').hide();
+                    $('.timer-row__message.error').show();
+                    $('.top-header .timer-row').addClass('error');
+                }
+            }, 1000);
+        }
     }
 
 
