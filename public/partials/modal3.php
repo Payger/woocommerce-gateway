@@ -149,6 +149,11 @@ $html .= '<span>';
 $html .= '<span i18n="">Awaiting Payment...</span>';
 $html .= '</span>';
 $html .= '</div>';
+$html .= '<div class="timer-row__message error hide">';
+$html .= '<span>';
+$html .= '<span i18n="">' . __( 'This payment has expired', 'payger') . '</span>';
+$html .= '</span>';
+$html .= '</div>';
 $html .= '<div class="timer-row__time-left">15:00</div>';
 $html .= '</div>'; //.timer-row
 $html .= '</div>'; //.top-header

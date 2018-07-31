@@ -194,16 +194,28 @@
 
 
     //Sets modal timer with 15 min countdown
-    if( $('.timer-row__time-left').length ) {
+    if( $('.timer-row__time-left').length ) { // I am at the modal
+
+        var order_min_counter = 'minutes_counter_'  + $('.order_id').val();
+        var order_sec_counter = 'seconds_counter_'  + $('.order_id').val();
+
+
+        if ( ! localStorage.getItem(order_min_counter) ) {
+            localStorage.setItem(order_min_counter, 15);
+        }
+        if ( ! localStorage.getItem(order_sec_counter) ) {
+            localStorage.setItem(order_sec_counter, 0);
+        }
+
+
 
         var end = new Date();
-        end.setMinutes(end.getMinutes() + 15);
+        end.setMinutes(end.getMinutes() + 1);
         var countDownDate = end.getTime();
 
 
         // Update the count down every 1 second
         var x = setInterval(function() {
-            console.log('every second');
 
             // Get todays date and time
             var now = new Date().getTime();
@@ -211,24 +223,25 @@
             // Find the distance between now an the count down date
             var distance = countDownDate - now;
 
-            console.log('DISTANCE ' + distance);
-
             // Time calculations for days, hours, minutes and seconds
             var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
             var seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-            console.log( 'minutes ' + minutes );
-            console.log( 'seconds ' + seconds);
+            localStorage.setItem(order_min_counter, minutes);
+            localStorage.setItem(order_sec_counter, seconds);
+
 
             // Display the result in the element with id="demo"
-            $('.timer-row__time-left').html(minutes + ":" + seconds);
+            $('.timer-row__time-left').html(localStorage.getItem(order_min_counter) + ":" + localStorage.getItem(order_sec_counter));
 
             // If the count down is finished, write some text
             if (distance < 0) {
                 clearInterval(x);
-                $('.timer-row__time-left').html( "EXPIRED");
+                $('.timer-row__time-left').html( "0:0");
                 $('bp-spinner').hide();
                 $('.timer-row__message').hide();
+                $('.timer-row__message.error').show();
+                $('.top-header .timer-row').addClass('error');
             }
         }, 1000);
 

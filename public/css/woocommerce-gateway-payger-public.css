@@ -221,6 +221,10 @@ bp-spinner{
     z-index: 1;
 }
 
+.top-header .timer-row.error {
+    background-color: red;
+}
+
 .top-header .timer-row__time-left {
     font-size: 13.5px;
     z-index: 1;
