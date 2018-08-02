@@ -297,6 +297,7 @@ class Woocommerce_Payger_Admin {
 
 	/**
 	 * This checks for payment status and update order accordingly
+	 * This method is triggered by the cron event
 	 * @param $payment_id
 	 * @param $order_id
 	 *
@@ -340,9 +341,9 @@ class Woocommerce_Payger_Admin {
 				//check for missing amount
 
 				$subpayments = $response['data']->content->subPayments;
-				$paid = 0;
+				$paid        = 0;
 				foreach( $subpayments as $payment ) {
-					if ('transaction_seen' == $payment->status ) {
+					if ( 'transaction_seen' == $payment->status ) {
 						$paid = $paid + $payment->actualOutputAmount;
 					}
 				}
@@ -352,12 +353,9 @@ class Woocommerce_Payger_Admin {
 				// update order not stating there is missing amount and new email was sent
 				$order->add_order_note( __( 'Payment is verified but not completed. Missing amount of ', 'payger' ) . $missing_value . $output_currency . __( ' an email was sent to the buyer.', 'payger' ) );
 
-
-				error_log('MISSING TO PAY '.$missing_value );
-
 				$args = array(
-					'inputCurrency' => $input_currency,
-				    'outputAmount' => $missing_value,
+					'inputCurrency'  => $input_currency,
+				    'outputAmount'   => $missing_value,
                     'outputCurrency' => $output_currency
 				);
 
@@ -369,13 +367,18 @@ class Woocommerce_Payger_Admin {
 
 				if ( $success ) {
 
-					$payments = $response['data']->content->subPayments;
+					$subpayments = $response['data']->content->subPayments;
 					error_log('SUBPAYMENTS');
 					error_log(print_r($subpayments, true));
-					$size     = count( $payments );
-					$payment = $payments[ 0 ];
-					error_log('PAYMENT');
-					error_log(print_r($payment, true));
+
+					//we need to check the pending subpayment, this
+					//will be the one with the data for the missing
+					//payment
+					foreach( $subpayments as $subpayment ) {
+						if ( 'pending' == $subpayment->status ) {
+							$payment = $subpayment;
+						}
+					}
 					$qrCode  = $payment->qrCode;
 					$address = $payment->address;
 
@@ -420,9 +423,9 @@ class Woocommerce_Payger_Admin {
 						}
 					}
 					$overpaid = $paid - $total;
-					error_log('OVERPAID '. $overpaid);
 
 					//change status
+					error_log('CHANGING THE STATUS FOR OVERPAID ORDER THIS SHOULD TRIGGEr THE EMAI');
 					$order->update_status( 'processing', __( 'Payger Payment Confirmed', 'payger' ) );
 
 					$order->add_order_note( __( 'Payment is verified and completed. The amount of ', 'payger' ) . $overpaid . __(' was overpaid.', 'payger' ) );
@@ -437,7 +440,10 @@ class Woocommerce_Payger_Admin {
 
 				$expired = $order->get_meta( 'payger_expired', true );
 				if ( 5 == $expired ) { //TODO this could be a setting
+					error_log('ORDER EXPIRED FOR 5 Times and will now be cancelled');
 					$order->update_status( 'failed', __( 'Payger Payment Expired 5 times', 'payger' ) );
+					//clear hook
+					wp_clear_scheduled_hook( 'payger_check_payment', array( 'payment_id' => $payment_id, 'order_id' => $order_id ) );
 					break;
 				}
 
@@ -457,9 +463,15 @@ class Woocommerce_Payger_Admin {
 
 				if ( $success ) {
 
-					$payments = $response['data']->content->subPayments;
-					$size     = count( $payments );
-					$payment  = $payments[ $size - 1 ];
+					//we need to check the pending subpayment, this
+					//will be the one with the data for the missing
+					//payment
+					$subpayments = $response['data']->content->subPayments;
+					foreach( $subpayments as $subpayment ) {
+						if ( 'pending' == $subpayment->status ) {
+							$payment = $subpayment;
+						}
+					}
 					$qrCode   = $payment->qrCode;
 					$address  = $payment->address;
 
