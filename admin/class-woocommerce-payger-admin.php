@@ -297,4 +297,13 @@ class Woocommerce_Payger_Admin {
 
 	}
 
+
+	public function check_order_status() {
+
+		$order_id = $_POST['order_id'];
+		$order    = new WC_Order( $order_id );
+
+		$order->get_status();
+	}
+
 }
