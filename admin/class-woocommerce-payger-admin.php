@@ -401,10 +401,10 @@ class Woocommerce_Payger_Admin {
 
 
 					//update store values for qrcode
-					$order->add_meta_data( 'payger_ammount', $payment->inputAmount   );
-					$order->add_meta_data( 'payger_qrcode', $qrCode );
-					$order->add_meta_data( 'payger_qrcode_image', $qrcode_image ); //stores qrcode url so that email can use this.
-					$order->add_meta_data( 'payger_address', $address );
+					$order->update_meta_data( 'payger_ammount', $payment->inputAmount   );
+					$order->update_meta_data( 'payger_qrcode', $qrCode );
+					$order->update_meta_data( 'payger_qrcode_image', $qrcode_image ); //stores qrcode url so that email can use this.
+					$order->update_meta_data( 'payger_address', $address );
 
 					// trigger new email
 					error_log('TRIGGER CUSTOMER UNDERPAID EMAIL');
@@ -494,10 +494,10 @@ class Woocommerce_Payger_Admin {
 
 
 					//update store values for qrcode
-					$order->add_meta_data( 'payger_ammount', $payment->inputAmount );
-					$order->add_meta_data( 'payger_qrcode', $qrCode );
-					$order->add_meta_data( 'payger_qrcode_image', $qrcode_image ); //stores qrcode url so that email can use this.
-					$order->add_meta_data( 'payger_address', $address );
+					$order->update_meta_data( 'payger_ammount', $payment->inputAmount );
+					$order->update_meta_data( 'payger_qrcode', $qrCode );
+					$order->update_meta_data( 'payger_qrcode_image', $qrcode_image ); //stores qrcode url so that email can use this.
+					$order->update_meta_data( 'payger_address', $address );
 
 					//update store values for qrcode
 
