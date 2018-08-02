@@ -177,6 +177,9 @@ class Woocommerce_Payger {
 		add_action( 'wp_ajax_payger_get_quote', array( $plugin_admin, 'get_quote' ) );
 		add_action( 'wp_ajax_nopriv_payger_get_quote', array( $plugin_admin, 'get_quote' ) );
 
+		add_action( 'wp_ajax_check_order_status', array( $plugin_admin, 'check_order_status' ) );
+		add_action( 'wp_ajax_nopriv_check_order_status', array( $plugin_admin, 'check_order_status' ) );
+
 		add_action( 'woocommerce_email_before_order_table', array( $plugin_admin, 'update_email_instructions' ), 10, 3 );
 
 		//FIXME pode não estar inicializado quando o callback corre...
@@ -185,9 +188,6 @@ class Woocommerce_Payger {
 		add_action( 'woocommerce_cancelled_order', array( $plugin_admin, 'cancel_order' ), 10, 1 );
 
 		add_action( 'woocommerce_update_options_payment_gateways_payger_gateway' , array( $plugin_admin, 'process_admin_options' ) );
-
-		add_action( 'wp_ajax_nopriv_ajax_check_order_status', array( $plugin_admin, 'check_order_status' ) );
-		add_action( 'wp_ajax_ajax_check_order_status', array( $plugin_admin, 'check_order_status' ) );
 	}
 
 	/**

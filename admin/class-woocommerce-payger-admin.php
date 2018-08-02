@@ -298,12 +298,18 @@ class Woocommerce_Payger_Admin {
 	}
 
 
+	/**
+	 * This method serves ajax requests for finding order status
+	 * @since 1.0.0
+	 * @author Ana Aires ( ana@widgilabs.com )
+	 */
 	public function check_order_status() {
 
 		$order_id = $_POST['order_id'];
 		$order    = new WC_Order( $order_id );
 
-		$order->get_status();
+		echo $order->get_status();
+		wp_die();
 	}
 
 }

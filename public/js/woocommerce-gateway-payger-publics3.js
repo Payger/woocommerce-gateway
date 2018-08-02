@@ -2,7 +2,6 @@
     'use strict';
 
     var $rate;
-    var $order_id = false;
     var $amount;
     var $choosen_currency;
     var processing = false;
@@ -271,6 +270,47 @@
                 }
             }, 1000);
         }
+
+
+        //check order status each minute
+        var y = setInterval(function () {
+
+            var order_id = $('.order_id').val();
+
+            console.log('check order status for ' + order_id );
+
+            //check order status
+
+            $.ajax({
+
+                cache: false,
+                url: payger.ajaxurl,
+                type: "get",
+                data: ({
+                    nonce:payger.nonce,
+                    action:'check_order_status',
+                    order_id : order_id
+                }),
+
+                success: function( response, textStatus, jqXHR ){
+                    console.log('response');
+                    console.log(response);
+
+                    //order with status processing so lets
+                    //update view and stop
+                    if( 'processing' == response ){
+                        clearInterval(y); //do not check for status again
+
+                        //redirect to thank you page
+                    }
+
+                }
+
+            });
+
+        }, 60000);
+
+
     }
 
 
