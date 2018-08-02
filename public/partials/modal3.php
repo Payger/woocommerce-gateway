@@ -118,13 +118,16 @@ if ( $success ) {
 	$order->update_status( 'on-hold', __( 'Awaiting Payger payment', 'payger' ) );
 	$order->add_order_note( __( 'DEBUG PAYMENT ID ' . $payment_id, 'payger' ) );
 
-	//do not reduce stock levels at this point, payment is not set
+	wc_reduce_stock_levels( $order_id );
 
 	$order->save();
 
 	// Remove cart
 	$woocommerce->cart->empty_cart();
 
+
+	//schedule event to check this payment status
+	wp_schedule_event( time(), 'minute', 'payger_check_payment', array( 'payment_id' => $payment_id, 'order_id' => $order_id ) );
 }
 
 
