@@ -164,7 +164,7 @@ class Woocommerce_Payger_Admin {
 
 	/**
 	 * Given a cryptocurrency get it's exchange rates
-	 *
+	 * This is used by the ajax call
 	 * @since 1.0.0
 	 * @author Ana Aires ( ana@widgilabs.com )
 	 */
