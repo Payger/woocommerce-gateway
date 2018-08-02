@@ -305,11 +305,20 @@ class Woocommerce_Payger_Admin {
 	 */
 	public function check_order_status() {
 
+		error_log('CHECK ORDER STATUS');
+		error_log(print_r($_POST, true));
+
+		if ( ! isset( $_POST['order_id'] ) ) {
+			error_log('FAILURE');
+			wp_send_json_error();
+			return;
+		}
+
 		$order_id = $_POST['order_id'];
 		$order    = new WC_Order( $order_id );
+		$data     = array( 'status' => $order->get_status(), 'thank_you_url' => $this->payger->get_return_url( $order ) );
 
-		echo $order->get_status();
-		wp_die();
+		wp_send_json_success( $data );
 	}
 
 }

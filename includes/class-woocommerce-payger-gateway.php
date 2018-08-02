@@ -273,7 +273,6 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 	public function process_payment( $order_id ) {
 
 		$order  = new WC_Order( $order_id );
-
 		return array(
 			'result'   => 'success',
 			'redirect' => $order->get_checkout_payment_url( true )

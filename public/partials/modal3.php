@@ -115,7 +115,7 @@ if ( $success ) {
 	$order->add_meta_data( 'payger_address', $address );
 
 	// Mark as on-hold (we're awaiting the cheque)
-	$order->update_status( 'on-hold', __( 'Awaiting Payger payment', 'payger' ) );
+	//$order->update_status( 'on-hold', __( 'Awaiting Payger payment', 'payger' ) );
 	$order->add_order_note( __( 'DEBUG PAYMENT ID ' . $payment_id, 'payger' ) );
 
 	wc_reduce_stock_levels( $order_id );

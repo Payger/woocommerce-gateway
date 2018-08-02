@@ -298,11 +298,11 @@
 
                     //order with status processing so lets
                     //update view and stop
-                    if( 'processing' == response ){
+                  //  if( 'processing' == response ){
                         clearInterval(y); //do not check for status again
 
                         //redirect to thank you page
-                    }
+                 //   }
 
                 }
 
