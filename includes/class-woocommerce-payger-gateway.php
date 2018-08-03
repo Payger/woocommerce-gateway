@@ -185,6 +185,15 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 				'desc_tip'    => true,
 				'options'     => $this->get_accepted_currencies_options(),
 			),
+			'payment_type' => array(
+				'title'       => __( 'Payment Type', 'payger' ),
+				'type'        => 'select',
+				'class'       => 'wc-enhanced-select',
+				'description' => __( 'Choose which type of paymnet you would like to make available for buyers ', 'payger' ),
+				'default'     => 'sync',
+				'desc_tip'    => true,
+				'options'     => array( 'async' => 'Asynchronous', 'sync'=> 'Synchronous' ),
+			),
 		);
 	}
 
@@ -248,8 +257,9 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			);
 		}
 
-		require_once plugin_dir_path( __FILE__ ) . '/../public/partials/modal3.php';
-
+		if( 'sync' === $this->get_option( 'payment_type' ) ) {
+			require_once plugin_dir_path( __FILE__ ) . '/../public/partials/pay-modal.php';
+		}
 	}
 
 	/**
@@ -263,13 +273,17 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 	public function process_payment( $order_id ) {
 		error_log('--------------------------------------------> PROCESS PAYMENT');
 
+		error_log('TYPE OF PAYMENT '.$this->get_option( 'payment_type' ));
 
 		//For SCENARIO 2
-		$order  = new WC_Order( $order_id );
-		return array(
-			'result'   => 'success',
-			'redirect' => $order->get_checkout_payment_url( true )
-		);
+		if ( 'sync' === $this->get_option( 'payment_type' ) ) {
+			$order = new WC_Order( $order_id );
+
+			return array(
+				'result'   => 'success',
+				'redirect' => $order->get_checkout_payment_url( true )
+			);
+		}
 		// END FOR SCENARIO 2
 
 
@@ -509,7 +523,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 	 */
 	public function receipt_page( $order_id ) {
 
-		require_once plugin_dir_path( __FILE__ ) . '/../public/partials/modal3.php';
+		require_once plugin_dir_path( __FILE__ ) . '/../public/partials/pay-modal.php';
 
 		echo $html;
 

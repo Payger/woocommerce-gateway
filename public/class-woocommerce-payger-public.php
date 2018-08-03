@@ -79,11 +79,8 @@ class Woocommerce_Payger_Public {
 
 			wp_enqueue_script( 'modal', plugin_dir_url( __FILE__ ) . 'js/modal.js', array( 'jquery', 'jquery-ui-dialog' ), $this->version, true );
 
-			// Async Payment
-			//wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/woocommerce-gateway-payger-public.js', array( 'jquery', 'jquery-ui-dialog' ), $this->version, true );
 
-			//Sync Payment
-			wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/woocommerce-gateway-payger-publics3.js', array( 'jquery', 'jquery-ui-dialog', 'modal' ), $this->version, true );
+			wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/woocommerce-gateway-payger-public.js', array( 'jquery', 'jquery-ui-dialog', 'modal' ), $this->version, true );
 
 			//localize script
 			$ajax_nonce = wp_create_nonce( "payger" );
