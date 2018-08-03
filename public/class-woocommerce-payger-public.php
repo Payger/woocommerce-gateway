@@ -62,7 +62,7 @@ class Woocommerce_Payger_Public {
 	public function enqueue_styles() {
 
 		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/woocommerce-gateway-payger-public.css', array(), $this->version, 'all' );
-
+		wp_enqueue_style( 'wp-jquery-ui-dialog' );
 	}
 
 	/**
@@ -76,10 +76,13 @@ class Woocommerce_Payger_Public {
 		if( is_checkout() ) {
 
 			wp_enqueue_script( 'jquery-ui-dialog' );
-			wp_enqueue_style( 'wp-jquery-ui-dialog' );
-			wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/woocommerce-gateway-payger-public.css' );
+
 			wp_enqueue_script( 'modal', plugin_dir_url( __FILE__ ) . 'js/modal.js', array( 'jquery', 'jquery-ui-dialog' ), $this->version, true );
+
+			// Async Payment
 			//wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/woocommerce-gateway-payger-public.js', array( 'jquery', 'jquery-ui-dialog' ), $this->version, true );
+
+			//Sync Payment
 			wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/woocommerce-gateway-payger-publics3.js', array( 'jquery', 'jquery-ui-dialog', 'modal' ), $this->version, true );
 
 			//localize script
@@ -102,10 +105,9 @@ class Woocommerce_Payger_Public {
 	 * @author Ana Aires ( ana@widgilabs.com )
 	 */
 	public function update_thank_you( $order_id ) {
-
 		$order   = new WC_Order( $order_id );
 
-		if( 'pending' !== $order->get_status() ){
+		if( 'on-hold' !== $order->get_status() ){
 			return;
 		}
 
@@ -137,6 +139,16 @@ class Woocommerce_Payger_Public {
 				esc_html__('in', 'payger') //9
 			);
 		}
+	}
+
+
+	/*
+	 * Extend woocommerce emails with Underpaid one
+	 */
+	public function add_payger_emails( $emails ) {
+		require( 'class-wc-email-customer-underpaid-order.php' );
+		$emails['WC_Email_Customer_Underpaid'] = new WC_Email_Customer_Underpaid_Order();
+		return $emails;
 	}
 
 }

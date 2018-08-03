@@ -110,6 +110,20 @@ class Woocommerce_Payger_Admin {
 
 	}
 
+
+	/** Add every minute interval ro recurrence array
+	 * @since 1.0.0
+	 * @author Ana Aires ( ana@widgilabs.com )
+	 */
+	public function payger_intervals( $schedules ) {
+		$schedules['minute'] = array(
+			'interval' => 60,
+			'display'  => __('Every Minute', 'payger'),
+		);
+		return $schedules;
+
+	}
+
 	/**
 	 * @since 1.0.0
 	 * @author Ana Aires ( ana@widgilabs.com )
@@ -150,7 +164,7 @@ class Woocommerce_Payger_Admin {
 
 	/**
 	 * Given a cryptocurrency get it's exchange rates
-	 *
+	 * This is used by the ajax call
 	 * @since 1.0.0
 	 * @author Ana Aires ( ana@widgilabs.com )
 	 */
@@ -204,10 +218,12 @@ class Woocommerce_Payger_Admin {
 			return; //order not on-hold
 		}
 
-		$qrCode  = $order->get_meta( 'payger_qrcode_image' );
-		$address = $order->get_meta('payger_address');
-		$currency = $order->get_meta('payger_currency');
-		$amount   = $order->get_meta('payger_ammount');
+		$qrCode  = $order->get_meta( 'payger_qrcode_image', true );
+		$address = $order->get_meta('payger_address', true );
+		$currency = $order->get_meta('payger_currency', true );
+		$amount   = $order->get_meta('payger_ammount', true );
+
+		error_log('I AM WRITING ON EMAIL THE AMOUNT '. $order->get_id() . '->'.$amount);
 
 		$message = apply_filters( 'payger_thankyou_previous_qrCode', __('Please use the following qrCode to process your payment.', 'payger') );
 
@@ -280,7 +296,240 @@ class Woocommerce_Payger_Admin {
 		}
 	}
 
+	/**
+	 * This checks for payment status and update order accordingly
+	 * This method is triggered by the cron event
+	 * @param $payment_id
+	 * @param $order_id
+	 *
+	 * @since 1.0.0
+	 * @author Ana Aires ( ana@widgilabs.com )
+	 */
+	public function check_payment( $payment_id, $order_id ) {
+
+		error_log('I AM CHECKING PAYMENT TRIGGERD BY CRON FOR '. $order_id);
+
+		$response = Payger::get( 'merchants/payments/' . $payment_id );
+		$status   = $response['data']->content->status;
+		$order    = new WC_Order( $order_id );
+		$total    = $order->get_total();
+
+		$input_currency  = $order->get_meta( 'payger_currency' );
+		$output_currency = get_option('woocommerce_currency');
+
+
+		error_log('PAYMENT STATUS ' .$status );
+
+		switch( $status ) {
+			case 'PENDING' :
+				break; //do nothing order still waits for payment
+			case 'PAID' :
+				error_log('PAID ');
+				if ( 'processing' !== $order->get_status() ) {
+					//change status
+					$order->update_status( 'processing', __( 'Payger Payment Confirmed', 'payger' ) );
+					$order->add_order_note( __( 'Payment is verified and completed.', 'payger' ) );
+				}
+
+				//clear hook for this payment
+				wp_clear_scheduled_hook( 'payger_check_payment', array( 'payment_id' => $payment_id, 'order_id' => $order_id ) );
+
+				break;
+			case 'UNDERPAID' :
+				error_log('UNDERPAID ');
+
+				//check for missing amount
+
+				$subpayments = $response['data']->content->subPayments;
+				$paid        = 0;
+				foreach( $subpayments as $payment ) {
+					if ( 'transaction_seen' == $payment->status ) {
+						$paid = $paid + $payment->actualOutputAmount;
+					}
+				}
+
+				$missing_value = $total - $paid;
+
+				// update order not stating there is missing amount and new email was sent
+				$order->add_order_note( __( 'Payment is verified but not completed. Missing amount of ', 'payger' ) . $missing_value . $output_currency . __( ' an email was sent to the buyer.', 'payger' ) );
+
+				$args = array(
+					'inputCurrency'  => $input_currency,
+				    'outputAmount'   => $missing_value,
+                    'outputCurrency' => $output_currency
+				);
+
+				// trigger payment update
+				$response = Payger::post( 'merchants/payments/' . $payment_id . '/address', $args );
+
+				//202 successfully updated
+				$success = ( 202 === $response['status'] ) ? true : false; //bad response if status different from 201
+
+				if ( $success ) {
+
+					$subpayments = $response['data']->content->subPayments;
+
+
+					//we need to check the pending subpayment, this
+					//will be the one with the data for the missing
+					//payment
+					foreach( $subpayments as $subpayment ) {
+						if ( 'pending' == $subpayment->status ) {
+							$payment = $subpayment;
+							break;
+						}
+					}
+
+					//  error_log(print_r($payment, true));
+					$qrCode  = $payment->qrCode;
+					$address = $payment->address;
+
+					//Build qrCode image
+					$data        = base64_decode( $qrCode->content );
+					$uploads     = wp_upload_dir();
+					$upload_path = $uploads['basedir'];
+					$filename    = '/payger_tmp/' . $order_id . '.png';
+
+					// create temporary directory if does not exists
+					if ( ! file_exists( $upload_path . '/payger_tmp' ) ) {
+						mkdir( $upload_path . '/payger_tmp' );
+					}
+
+					//always update file so that if qrcode changes for this
+					//payment the code is still valid
+					file_put_contents( $upload_path . $filename, $data );
+
+					$qrcode_image = $uploads['baseurl'] . $filename;
+
+					//update store values for qrcode
+					$order->update_meta_data( 'payger_ammount', $payment->inputAmount );
+					$order->update_meta_data( 'payger_qrcode', $qrCode );
+					$order->update_meta_data( 'payger_qrcode_image', $qrcode_image ); //stores qrcode url so that email can use this.
+					$order->update_meta_data( 'payger_address', $address );
+
+					$order->save_meta_data();
+
+					// trigger new email
+					error_log('TRIGGER CUSTOMER UNDERPAID EMAIL');
+					$this->trigger_email( $order_id, 'customer_underpaid_order' );
+				}
+				break;
+			case 'OVERPAID' :
+				if ( 'processing' !== $order->get_status() ) {
+
+					//calculate overpaid amount
+					$subpayments = $response['data']->content->subPayments;
+					$paid = 0;
+					foreach( $subpayments as $payment ) {
+						if ('transaction_seen' == $payment->status ) {
+							$paid = $paid + $payment->actualOutputAmount;
+						}
+					}
+					$overpaid = $paid - $total;
+
+					//change status
+					error_log('CHANGING THE STATUS FOR OVERPAID ORDER THIS SHOULD TRIGGEr THE EMAI');
+					$order->update_status( 'processing', __( 'Payger Payment Confirmed', 'payger' ) );
+
+					$order->add_order_note( __( 'Payment is verified and completed. The amount of ', 'payger' ) . $overpaid . $output_currency . __(' was overpaid.', 'payger' ) );
+				}
+
+				//clear hook
+				wp_clear_scheduled_hook( 'payger_check_payment', array( 'payment_id' => $payment_id, 'order_id' => $order_id ) );
+				break;
+
+			case 'EXPIRED' :
+				error_log('EXPIRED ');
+
+				$expired = $order->get_meta( 'payger_expired', true );
+				if ( 5 == $expired ) { //TODO this could be a setting
+					error_log('ORDER EXPIRED FOR 5 Times and will now be cancelled');
+					$order->update_status( 'failed', __( 'Payger Payment Expired 5 times', 'payger' ) );
+					//clear hook
+					wp_clear_scheduled_hook( 'payger_check_payment', array( 'payment_id' => $payment_id, 'order_id' => $order_id ) );
+					break;
+				}
+
+
+				$args = array(
+					'inputCurrency' => $input_currency,
+					'outputAmount' => $total,
+					'outputCurrency' => $output_currency
+				);
+
+				// trigger payment update
+				$response = Payger::post( 'merchants/payments/' . $payment_id . '/address', $args );
+
+				//get new qrcode
+				//202 successfully updated
+				$success = ( 202 === $response['status'] ) ? true : false; //bad response if status different from 201
+
+				if ( $success ) {
+
+					//we need to check the pending subpayment, this
+					//will be the one with the data for the missing
+					//payment
+					$subpayments = $response['data']->content->subPayments;
+					foreach( $subpayments as $subpayment ) {
+						if ( 'pending' == $subpayment->status ) {
+							$payment = $subpayment;
+							break;
+						}
+					}
+					$qrCode   = $payment->qrCode;
+					$address  = $payment->address;
+
+					//Build qrCode image
+					$data        = base64_decode( $qrCode->content );
+					$uploads     = wp_upload_dir();
+					$upload_path = $uploads['basedir'];
+					$filename    = '/payger_tmp/' . $order_id . '.png';
+
+					// create temporary directory if does not exists
+					if ( ! file_exists( $upload_path . '/payger_tmp' ) ) {
+						mkdir( $upload_path . '/payger_tmp' );
+					}
+
+					//always update file so that if qrcode changes for this
+					//payment the code is still valid
+					file_put_contents( $upload_path . $filename, $data );
+
+					$qrcode_image = $uploads['baseurl'] . $filename;
+
+
+					//update store values for qrcode
+					$order->update_meta_data( 'payger_ammount', $payment->inputAmount );
+					$order->update_meta_data( 'payger_qrcode', $qrCode );
+					$order->update_meta_data( 'payger_qrcode_image', $qrcode_image ); //stores qrcode url so that email can use this.
+					$order->update_meta_data( 'payger_address', $address );
+
+					$order->save_meta_data();
+
+					//update store values for qrcode
+
+					//trigger new email
+					$this->trigger_email( $order_id, 'new_order' );
+
+					// update order not stating first address for payment expired
+					$order->add_order_note( __( 'First address for payment expired, new one sent to email ', 'payger' ) );
+				}
+
+				break;
+
+			case 'FAILED' :
+
+				//change status
+				$order->update_status( 'failed', __( 'Payger Payment Failed', 'payger' ) );
+
+				//clear hook
+				wp_clear_scheduled_hook( 'payger_check_payment', array( 'payment_id' => $payment_id, 'order_id' => $order_id ) );
+				break;
+		}
+
+	}
+
 	/*
+	 * Call cancel payment for a previous payment that was canceled
 	 *
 	 */
 	public function cancel_order( $order_id ) {
@@ -297,6 +546,44 @@ class Woocommerce_Payger_Admin {
 
 	}
 
+	/**
+	 * This method serves ajax requests for cancel order
+	 * after timeout
+	 * */
+	public function cancel_expired_order() {
+
+		if ( ! isset( $_GET['order_id'] ) ) {
+			wp_send_json_error();
+			return;
+		}
+
+		$order_id = $_GET['order_id'];
+		$order    = new WC_Order( $order_id );
+		$order->update_status( 'cancelled', __( 'Unpaid order cancelled - time limit reached.', 'payger' ) );
+
+		wp_send_json_success();
+	}
+
+
+	/**
+	 * Send email according status
+	 * @param $order_id
+	 * @param $email_id
+	 *
+	 * @since 1.0.0
+	 * @author Ana Aires ( ana@widgilabs.com )
+	 */
+
+	public function trigger_email( $order_id, $email_id ) {
+		$mailer = WC()->mailer();
+		$mails = $mailer->get_emails();
+
+		foreach ( $mails as $mail ) {
+			if ( $mail->id == $email_id ) {
+				$mail->trigger( $order_id );
+			}
+		}
+	}
 
 	/**
 	 * This method serves ajax requests for finding order status
@@ -316,26 +603,4 @@ class Woocommerce_Payger_Admin {
 
 		wp_send_json_success( $data );
 	}
-
-	/**
-	 * This method serves ajax requests for cancel order
-	 * after timeout
-	 *
-	 * @since 1.0.0
-	 * @author Ana Aires ( ana@widgilabs.com )
-	 */
-	public function cancel_expired_order() {
-
-		if ( ! isset( $_GET['order_id'] ) ) {
-			wp_send_json_error();
-			return;
-		}
-
-		$order_id = $_GET['order_id'];
-		$order    = new WC_Order( $order_id );
-		$order->update_status( 'cancelled', __( 'Unpaid order cancelled - time limit reached.', 'payger' ) );
-
-		wp_send_json_success();
-	}
-
 }

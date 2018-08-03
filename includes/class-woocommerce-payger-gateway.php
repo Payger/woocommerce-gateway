@@ -189,16 +189,6 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 	}
 
 
-	public function validate_fields() {
-
-
-		error_log(print_r($_POST, true));
-
-		return true;
-
-	}
-
-
 	/**
 	 * Form to output on checkout
 	 * @since 1.0.0
@@ -271,14 +261,134 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 	 * @author Ana Aires ( ana@widgilabs.com )
 	 */
 	public function process_payment( $order_id ) {
+		error_log('--------------------------------------------> PROCESS PAYMENT');
 
+
+		//For SCENARIO 2
 		$order  = new WC_Order( $order_id );
 		return array(
 			'result'   => 'success',
 			'redirect' => $order->get_checkout_payment_url( true )
 		);
-	}
+		// END FOR SCENARIO 2
 
+
+		//SCENARIO 1
+		global $woocommerce;
+		$error_message = false;
+		$order         = new WC_Order( $order_id );
+
+		$selling_currency = get_option('woocommerce_currency');
+
+		$amount   = WC()->cart->cart_contents_total;
+		$asset    = $_POST['payger_gateway'];
+
+
+		// Get list of items to buy
+		$cart_items = array();
+		if( ! WC()->cart->is_empty() ) {
+			$items = WC()->cart->get_cart();
+			foreach ( $items as $item => $values ) {
+				$_product     =  wc_get_product( $values['data']->get_id());
+				$cart_items[] = $_product->get_title();
+			}
+			$cart_items = implode( ',', $cart_items );
+		}
+
+		$site_name   = get_bloginfo( 'name' );
+
+		//check for currency limits
+		$args = array (
+
+			'externalId'        => "$order_id" . time(),
+			'description'       => $cart_items,
+            'inputCurrency'	    => $asset,
+            'outputCurrency'    => $selling_currency,
+            'source'            => $site_name,
+		    'outputAmount'	    => $amount,
+            'buyerName'	        => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
+		    'buyerEmailAddress'	=> $order->get_billing_email(),
+			'callback'          => array( 'url' => WC()->api_request_url( 'WC_Gateway_Payger' ), 'method' => 'POST' ),
+		);
+
+		$order->add_order_note( __('DEBUG CALLBACK '.WC()->api_request_url( 'WC_Gateway_Payger' ), 'payger' ) );
+
+		$response = Payger::post( 'merchants/payments/', $args );
+
+//		error_log('RESPONSE');
+//		error_log(print_r($response,true));
+
+		$success = ( 201 === $response['status'] ) ? true : false; //bad response if status different from 201
+
+		if ( $success && ! $error_message ) {
+
+			$payment_id = $response['data']->content->id;
+
+			$subpayments = $response['data']->content->subPayments;
+			foreach ( $subpayments as $subpayment ) {
+				if ( 'pending' == $subpayment->status ) {
+					$payment = $subpayment;
+					break;
+				}
+			}
+
+			$qrCode  = $payment->qrCode;
+			$address = $payment->address;
+
+			//$data        = base64_decode( $qrCode->content );
+			$uploads     = wp_upload_dir();
+			$upload_path = $uploads['basedir'];
+			$filename    = '/payger_tmp/' . $order_id . '.png';
+
+			// create temporary directory if does not exists
+			if ( ! file_exists( $upload_path . '/payger_tmp' ) ) {
+				mkdir( $upload_path . '/payger_tmp' );
+			}
+
+			//always update file so that if qrcode changes for this
+			//payment the code is still valid
+			file_put_contents( $upload_path . $filename, $data );
+
+			//save meta to possible queries and to show information on thank you page or emails
+			$order->add_meta_data( 'payger_currency', $asset, true );
+			$order->add_meta_data( 'payger_ammount', $payment->inputAmount, true );
+			$order->add_meta_data( 'payger_qrcode', $qrCode, true );
+			$order->add_meta_data( 'payger_qrcode_image', $uploads['baseurl'] . $filename, true ); //stores qrcode url so that email can use this.
+			$order->add_meta_data( 'payger_payment_id', $payment_id, true );
+			$order->add_meta_data( 'payger_address', $address, true );
+			$order->add_meta_data( 'payger_expired', 0 ); //controls number of expirations
+
+			// Mark as on-hold (we're awaiting the cheque)
+			$order->update_status( 'on-hold', __( 'Awaiting Payger payment', 'payger' ) );
+			$order->add_order_note( __( 'DEBUG PAYMENT ID ' . $payment_id, 'payger' ) );
+
+			//do not reduce stock levels at this point, payment is not set
+			wc_reduce_stock_levels( $order_id );
+
+			$order->save();
+
+			// Remove cart
+			$woocommerce->cart->empty_cart();
+
+
+			//schedule event to check this payment status
+			wp_schedule_event( time(), 'minute', 'payger_check_payment', array( 'payment_id' => $payment_id, 'order_id' => $order_id ) );
+
+			// Return thankyou redirect
+			return array(
+				'result'   => 'success',
+				'redirect' => $this->get_return_url( $order )
+			);
+		} else {
+			//check if error message was previously set
+			if ( ! $error_message ) {
+				$error_message = $response['data']->error->message;
+				$error_message = apply_filters( 'payger_payment_error_message', $error_message );
+			}
+			wc_add_notice( __('Payment error: ', 'payger') . $error_message, 'error' );
+			return;
+		}
+	}
 
 	/**
 	 * Gets current woocommerce currency and checks which are the corresponding currencies this
@@ -294,14 +404,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		$selling_currency = get_option('woocommerce_currency');
 
 		$args = array('from' => $selling_currency, 'amount' => 10 ); //we need to pass an amoun it's a bridge requirement
-		//error_log(print_r($args, true));
-		//$response = Payger::get( 'merchants/exchange-rates', $args );
-
 		$response = Payger::get( 'merchants/currencies' );
-
-
-		//error_log('GET ACCEPTED CURRENCIES RESPONSE ');
-		//error_log( print_r( $response, true ) );
 
 		$currencies = array();
 
@@ -340,14 +443,17 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			$amount  = $order->get_total();
 		}
 
-		error_log('GET QUOTE');
-		$response = Payger::get( 'merchants/exchange-rates', array('from' => $selling_currency, 'to'=> $choosen_crypto, 'amount' => $amount ) );
-		error_log(print_r($response, true));
+		$args = array(
+			'from'   => $selling_currency,
+			'to'     => $choosen_crypto,
+			'amount' => $amount
+		);
+		$response = Payger::get( 'merchants/exchange-rates', $args );
+		
 
 		$success = ( 200 === $response['status'] ) ? true : false; //bad response if status different from 200
 
 		if ( $success ) {
-
 			$result    = $response['data']->content->rates;
 			$result    = $result[0]; //I am interested in a single quote
 			$limit     = $result->limit;
@@ -387,23 +493,21 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		$payment_id = $order->get_meta('payger_payment_id', true);
 
-		//$this->payger->delete( 'merchants/payments/' . $payment_id, array() );
 		Payger::delete( 'merchants/payments/' . $payment_id, array() );
 	}
 
 
 	/**
 	 * Output redirect or iFrame form on receipt page
+	 * This is only necessary for synchronous payment
+	 * process.
+	 * This will include modal content on payment page
 	 *
 	 * @access public
 	 *
 	 * @param $order_id
 	 */
 	public function receipt_page( $order_id ) {
-		$order = wc_get_order( $order_id );
-		//$args  = $this->get_everypay_args( $order );
-
-		error_log(print_r($_POST, true));
 
 		require_once plugin_dir_path( __FILE__ ) . '/../public/partials/modal3.php';
 
