@@ -6,15 +6,13 @@
     var $choosen_currency;
     var processing = false;
     var processing_get_quote = false;
+    var order_id = $('.order_id').val();
 
 
     //handle qrCode text copy
     $( '.copy_clipboard' ).on( 'click', function(){
         /* Get the text field */
         var copyText = document.getElementById("qrCode_text");
-
-        console.log('aqui');
-        console.log(copyText);
 
         /* Select the text field */
         copyText.select();
@@ -259,6 +257,7 @@
                 $('.timer-row__time-left').html(localStorage.getItem(order_min_counter) + ":" + localStorage.getItem(order_sec_counter));
 
                 // If the count down is finished, write some text
+                // and cancel the order due to missing payment.
                 if (distance < 0) {
                     counting = false;
                     clearInterval(x);
@@ -267,6 +266,29 @@
                     $('.timer-row__message').hide();
                     $('.timer-row__message.error').show();
                     $('.top-header .timer-row').addClass('error');
+
+
+                    console.log('Trying to cancel order');
+                    $.ajax({
+
+                        cache: false,
+                        url: payger.ajaxurl,
+                        type: "get",
+                        data: ({
+                            nonce:payger.nonce,
+                            action:'cancel_expired_order',
+                            order_id : order_id
+                        }),
+
+                        success: function( response, textStatus, jqXHR ){
+                            console.log('response');
+                            console.log(response);
+                            console.log('Order cancelled');
+                        }
+
+                    });
+
+
                 }
             }, 1000);
         }
@@ -296,14 +318,19 @@
                     console.log('response');
                     console.log(response);
 
-                    //order with status processing so lets
-                    //update view and stop
-                  //  if( 'processing' == response ){
-                        clearInterval(y); //do not check for status again
+                    if( response.success ) {
 
-                        //redirect to thank you page
-                 //   }
+                        var status = response.data.status;
+                        var url    = response.data.thank_you_url;
 
+                        //order with status processing so lets
+                        //update view and stop
+                          if( 'processing' == status ) {
+                             clearInterval(y); //do not check for status again
+                             //redirect to thank you page
+                             window.location.href = url;
+                          }
+                    }
                 }
 
             });

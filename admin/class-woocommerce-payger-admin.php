@@ -305,20 +305,37 @@ class Woocommerce_Payger_Admin {
 	 */
 	public function check_order_status() {
 
-		error_log('CHECK ORDER STATUS');
-		error_log(print_r($_POST, true));
-
-		if ( ! isset( $_POST['order_id'] ) ) {
-			error_log('FAILURE');
+		if ( ! isset( $_GET['order_id'] ) ) {
 			wp_send_json_error();
 			return;
 		}
 
-		$order_id = $_POST['order_id'];
+		$order_id = $_GET['order_id'];
 		$order    = new WC_Order( $order_id );
 		$data     = array( 'status' => $order->get_status(), 'thank_you_url' => $this->payger->get_return_url( $order ) );
 
 		wp_send_json_success( $data );
+	}
+
+	/**
+	 * This method serves ajax requests for cancel order
+	 * after timeout
+	 *
+	 * @since 1.0.0
+	 * @author Ana Aires ( ana@widgilabs.com )
+	 */
+	public function cancel_expired_order() {
+
+		if ( ! isset( $_GET['order_id'] ) ) {
+			wp_send_json_error();
+			return;
+		}
+
+		$order_id = $_GET['order_id'];
+		$order    = new WC_Order( $order_id );
+		$order->update_status( 'cancelled', __( 'Unpaid order cancelled - time limit reached.', 'payger' ) );
+
+		wp_send_json_success();
 	}
 
 }
