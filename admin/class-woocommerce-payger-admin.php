@@ -171,7 +171,6 @@ class Woocommerce_Payger_Admin {
 	public function get_quote() {
 
 		if ( ! isset( $_GET['to'] ) ) {
-			error_log('FAIL GET QUOTE AJAX TO NOT SET');
 			$error_message = apply_filters( 'payger_no_currency_error_message', __('You must choose a cryptocurrency first.', 'payger' ) );
 			wc_add_notice( __('Payment error: ', 'payger') . $error_message, 'error' );
 			wp_send_json_error();
@@ -530,6 +529,7 @@ class Woocommerce_Payger_Admin {
 	}
 
 	/*
+	 * Call cancel payment for a previous payment that was canceled
 	 *
 	 */
 	public function cancel_order( $order_id ) {
@@ -545,6 +545,25 @@ class Woocommerce_Payger_Admin {
 		$this->payger->cancel_payment( $order_id );
 
 	}
+
+	/**
+	 * This method serves ajax requests for cancel order
+	 * after timeout
+	 * */
+	public function cancel_expired_order() {
+
+		if ( ! isset( $_GET['order_id'] ) ) {
+			wp_send_json_error();
+			return;
+		}
+
+		$order_id = $_GET['order_id'];
+		$order    = new WC_Order( $order_id );
+		$order->update_status( 'cancelled', __( 'Unpaid order cancelled - time limit reached.', 'payger' ) );
+
+		wp_send_json_success();
+	}
+
 
 	/**
 	 * Send email according status
@@ -564,5 +583,24 @@ class Woocommerce_Payger_Admin {
 				$mail->trigger( $order_id );
 			}
 		}
+	}
+
+	/**
+	 * This method serves ajax requests for finding order status
+	 * @since 1.0.0
+	 * @author Ana Aires ( ana@widgilabs.com )
+	 */
+	public function check_order_status() {
+
+		if ( ! isset( $_GET['order_id'] ) ) {
+			wp_send_json_error();
+			return;
+		}
+
+		$order_id = $_GET['order_id'];
+		$order    = new WC_Order( $order_id );
+		$data     = array( 'status' => $order->get_status(), 'thank_you_url' => $this->payger->get_return_url( $order ) );
+
+		wp_send_json_success( $data );
 	}
 }

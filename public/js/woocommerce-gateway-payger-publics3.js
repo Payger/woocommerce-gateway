@@ -6,8 +6,8 @@
     var $choosen_currency;
     var processing = false;
     var processing_get_quote = false;
-    var order_id = $('.order_id').val();  //order_id = false para async
-    var checkout_form = $( 'form.checkout' );
+    var order_id = $('.order_id').val();
+
 
     //handle qrCode text copy
     $( '.copy_clipboard' ).on( 'click', function(){
@@ -23,6 +23,7 @@
 
     //Copy for the modal
     $('.copy-item span').on('click', function() {
+
         var msg = window.prompt("Copy this address", $('#address').val() );
     });
 
@@ -60,8 +61,8 @@
 
     // Handle Place Order
     // Place Order Needs to get a new quote in case rate changed
+    var checkout_form = $( 'form.checkout' );
 
-    //Stop processing if an error occured
     $( document.body ).on( 'checkout_error', function(){
         processing = false; //we need to double check again if form submitting fails
     } );
@@ -81,115 +82,13 @@
 
 
     function handle_place_order() {
-
-        if( is_synchronous_payment() ) {
+        if( processing ) {
             return true;
         }
 
-        // Not Syncronous payment so we need to do process the payment.
-        // which means verify with the user the exchange rate
 
 
-        if( processing ) {
-            return true; //avoids more than on call to place order.
-        }
-
-        //needed for order-pay endpoint
-        if ( $('#order_review').length ) {
-            //if ( 0 != $('.order_id').val()) {
-            //    $order_id = $('.order_id').val();
-            //}
-            checkout_form =  $('#order_review');
-        }
-
-        checkout_form.block({
-            message: null,
-            overlayCSS: {
-                background: '#fff',
-                opacity: 0.6
-            }
-        });
-
-        console.log('ORDER ID ' + order_id );
-
-        //double check if we still have the same array for this currency
-        //get current rates for this currency
-        $.ajax({
-
-            cache: false,
-            url: payger.ajaxurl,
-            type: "get",
-            data: ({
-                nonce:payger.nonce,
-                action:'payger_get_quote',
-                to: $choosen_currency,
-                order_id: order_id
-            }),
-
-            success: function( response, textStatus, jqXHR ){
-
-                if( response.success ) {
-
-                    var update_rate = response.data.rate;
-                    var update_amount = response.data.amount;
-
-                    if ($rate !== update_rate) {
-
-                        console.log('RATES ARE DIFFERENT');
-
-                        $('.update_amount').html(update_amount);
-                        $('.update_rate').html(update_rate);
-                        $("#dialog").dialog({
-                            buttons: [
-                                {
-                                    text: "OK",
-                                    click: function () {
-                                        $(this).dialog("close");
-                                        // checkout_form.off( 'checkout_place_order');
-                                        processing = true;
-                                        checkout_form.submit();
-                                        return true;
-                                    }
-                                },
-                                {
-                                    text: "Cancel",
-                                    click: function () {
-                                        $(this).dialog("close");
-                                        checkout_form.unblock();
-                                        processing = false;
-                                        return false;
-                                    }
-                                }
-                            ]
-                        });
-                        //rate changed so lets ask for user confirmation
-                    } else {
-                        console.log('SAME RATE PROCEED');
-                        processing = true;
-                        checkout_form.unblock();
-                        checkout_form.submit();
-                        return true; //rate did not change so lets proceed
-                    }
-                } else {
-                    location.reload(); // shows error message
-                    return false;
-                }
-
-                checkout_form.unblock();
-
-            },
-
-            error: function( jqXHR, textStatus, errorThrown ){
-                console.log( 'The following error occured: ' + textStatus, errorThrown );
-                return false;
-            }
-
-        });
-        return false;
-
-
-
-
+        return true;
     }
 
     function handle_currency_selection( $choosen_currency ) {
@@ -281,7 +180,7 @@
     }
 
 
-    // Can't do this on handle_place_order since it redirects
+    // Can't do this on handle_place_order since we need this to redirect
     // to pay-order page where order id is already created and we can properly
     // generate payment.
     if( $('body').hasClass('woocommerce-order-pay') ) {
@@ -291,9 +190,8 @@
 
 
 
-    // Sets modal timer with 15 min countdown
-    // Checks Payment status so that we notify the buyer
-    if( is_synchronous_payment() ) { // I am at the modal
+    //Sets modal timer with 15 min countdown
+    if( $('.timer-row__time-left').length ) { // I am at the modal
 
         var counting          = false;
         var order_min_counter = 'minutes_counter_'  + $('.order_id').val();
@@ -326,9 +224,14 @@
 
 
         var end = new Date();
+
         end.setMinutes(end.getMinutes() + minutesx);
         end.setSeconds(end.getSeconds() + secondsx);
+
+        console.log(end);
+
         var countDownDate = end.getTime();
+
 
         // Update the count down every 1 second
         if( counting ) {
@@ -391,11 +294,10 @@
         }
 
 
-        // check order status each minute
-        // cancels if expires, or redict to thank you page if
-        // payment is detected
-
+        //check order status each minute
         var y = setInterval(function () {
+
+            var order_id = $('.order_id').val();
 
             console.log('check order status for ' + order_id );
 
@@ -436,19 +338,6 @@
         }, 60000);
 
 
-    }
-
-
-    /**
-     * Checks wether this is a synchronous or asynchronous payment
-     * Verifies if there is a class only present on the modal
-     * @returns {boolean}
-     */
-    function is_synchronous_payment() {
-        if( $('.timer-row__time-left').length ) {
-            return true;
-        }
-        return false;
     }
 
 

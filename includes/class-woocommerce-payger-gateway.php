@@ -78,6 +78,9 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		//This will save our settings
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
+		// Receipt page creates POST to gateway or hosts iFrame
+		add_action( 'woocommerce_receipt_' . $this->id, array( $this, 'receipt_page' ) );
+
 	}
 
 	/**
@@ -182,47 +185,18 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 				'desc_tip'    => true,
 				'options'     => $this->get_accepted_currencies_options(),
 			),
+			'payment_type' => array(
+				'title'       => __( 'Payment Type', 'payger' ),
+				'type'        => 'select',
+				'class'       => 'wc-enhanced-select',
+				'description' => __( 'Choose which type of paymnet you would like to make available for buyers ', 'payger' ),
+				'default'     => 'sync',
+				'desc_tip'    => true,
+				'options'     => array( 'async' => 'Asynchronous', 'sync'=> 'Synchronous' ),
+			),
 		);
 	}
 
-	/**
-	 * Gets current woocommerce currency and checks which are the corresponding currencies this
-	 * merchant can offer as payment possible currencies.
-	 * exchange-rates should filter results based on from currency
-	 *
-	 * @return array
-	 * @since 1.0.0
-	 * @author Ana Aires ( ana@widgilabs.com )
-	 */
-	public function get_accepted_currencies_options() {
-
-		$selling_currency = get_option('woocommerce_currency');
-
-		$args = array('from' => $selling_currency, 'amount' => 10 ); //we need to pass an amoun it's a bridge requirement
-		//error_log(print_r($args, true));
-		//$response = Payger::get( 'merchants/exchange-rates', $args );
-
-		$response = Payger::get( 'merchants/currencies' );
-
-
-		//error_log('GET ACCEPTED CURRENCIES RESPONSE ');
-		//error_log( print_r( $response, true ) );
-
-		$currencies = array();
-
-		if ( 200 !== $response['status'] ) {
-			return $currencies;
-		}
-
-		if ( $rates = $response['data']->content->currencies ) {
-			foreach ( $rates as $currency ) {
-				$currencies[ $currency->name ] = ucfirst( $currency->longName );
-			}
-		}
-		update_option('payger_possible_currencies', $currencies );
-
-		return $currencies;
-	}
 
 	/**
 	 * Form to output on checkout
@@ -282,6 +256,10 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 				$order_id
 			);
 		}
+
+		if( 'sync' === $this->get_option( 'payment_type' ) ) {
+			require_once plugin_dir_path( __FILE__ ) . '/../public/partials/pay-modal.php';
+		}
 	}
 
 	/**
@@ -293,7 +271,23 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 	 * @author Ana Aires ( ana@widgilabs.com )
 	 */
 	public function process_payment( $order_id ) {
+		error_log('--------------------------------------------> PROCESS PAYMENT');
 
+		error_log('TYPE OF PAYMENT '.$this->get_option( 'payment_type' ));
+
+		//For SCENARIO 2
+		if ( 'sync' === $this->get_option( 'payment_type' ) ) {
+			$order = new WC_Order( $order_id );
+
+			return array(
+				'result'   => 'success',
+				'redirect' => $order->get_checkout_payment_url( true )
+			);
+		}
+		// END FOR SCENARIO 2
+
+
+		//SCENARIO 1
 		global $woocommerce;
 		$error_message = false;
 		$order         = new WC_Order( $order_id );
@@ -320,22 +314,23 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		//check for currency limits
 		$args = array (
 
-			'externalId' => "$order_id" . time(),
-			'description' => $cart_items,
-            'inputCurrency'	=> $asset,
-            'outputCurrency' => $selling_currency,
-            'source' => $site_name,
-		    'outputAmount'	=> $amount,
-            'buyerName'	=> $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
+			'externalId'        => "$order_id" . time(),
+			'description'       => $cart_items,
+            'inputCurrency'	    => $asset,
+            'outputCurrency'    => $selling_currency,
+            'source'            => $site_name,
+		    'outputAmount'	    => $amount,
+            'buyerName'	        => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
 		    'buyerEmailAddress'	=> $order->get_billing_email(),
-			'callback'   => array( 'url' => WC()->api_request_url( 'WC_Gateway_Payger' ), 'method' => 'POST' ),
-		    'metadata'	=> array( 'color' => 'red', 'quantity' => 2) //TODO change this
+			'callback'          => array( 'url' => WC()->api_request_url( 'WC_Gateway_Payger' ), 'method' => 'POST' ),
 		);
 
 		$order->add_order_note( __('DEBUG CALLBACK '.WC()->api_request_url( 'WC_Gateway_Payger' ), 'payger' ) );
 
-
 		$response = Payger::post( 'merchants/payments/', $args );
+
+//		error_log('RESPONSE');
+//		error_log(print_r($response,true));
 
 		$success = ( 201 === $response['status'] ) ? true : false; //bad response if status different from 201
 
@@ -343,13 +338,18 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 			$payment_id = $response['data']->content->id;
 
-			$payment = $response['data']->content->subPayments;
-			$payment = $payment[0]; //TODO check if first payment is allways the right one
-			$qrCode     = $payment->qrCode;
-			$address    = $payment->address;
+			$subpayments = $response['data']->content->subPayments;
+			foreach ( $subpayments as $subpayment ) {
+				if ( 'pending' == $subpayment->status ) {
+					$payment = $subpayment;
+					break;
+				}
+			}
 
-			//
-			$data        = base64_decode( $qrCode->content );
+			$qrCode  = $payment->qrCode;
+			$address = $payment->address;
+
+			//$data        = base64_decode( $qrCode->content );
 			$uploads     = wp_upload_dir();
 			$upload_path = $uploads['basedir'];
 			$filename    = '/payger_tmp/' . $order_id . '.png';
@@ -366,11 +366,11 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			//save meta to possible queries and to show information on thank you page or emails
 			$order->add_meta_data( 'payger_currency', $asset, true );
 			$order->add_meta_data( 'payger_ammount', $payment->inputAmount, true );
-			$order->add_meta_data( 'payger_qrcode', $qrCode, true);
+			$order->add_meta_data( 'payger_qrcode', $qrCode, true );
 			$order->add_meta_data( 'payger_qrcode_image', $uploads['baseurl'] . $filename, true ); //stores qrcode url so that email can use this.
 			$order->add_meta_data( 'payger_payment_id', $payment_id, true );
 			$order->add_meta_data( 'payger_address', $address, true );
-			$order->add_meta_data( 'payger_expired', 0); //controls number of expirations
+			$order->add_meta_data( 'payger_expired', 0 ); //controls number of expirations
 
 			// Mark as on-hold (we're awaiting the cheque)
 			$order->update_status( 'on-hold', __( 'Awaiting Payger payment', 'payger' ) );
@@ -394,7 +394,6 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 				'redirect' => $this->get_return_url( $order )
 			);
 		} else {
-
 			//check if error message was previously set
 			if ( ! $error_message ) {
 				$error_message = $response['data']->error->message;
@@ -403,6 +402,38 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			wc_add_notice( __('Payment error: ', 'payger') . $error_message, 'error' );
 			return;
 		}
+	}
+
+	/**
+	 * Gets current woocommerce currency and checks which are the corresponding currencies this
+	 * merchant can offer as payment possible currencies.
+	 * exchange-rates should filter results based on from currency
+	 *
+	 * @return array
+	 * @since 1.0.0
+	 * @author Ana Aires ( ana@widgilabs.com )
+	 */
+	public function get_accepted_currencies_options() {
+
+		$selling_currency = get_option('woocommerce_currency');
+
+		$args = array('from' => $selling_currency, 'amount' => 10 ); //we need to pass an amoun it's a bridge requirement
+		$response = Payger::get( 'merchants/currencies' );
+
+		$currencies = array();
+
+		if ( 200 !== $response['status'] ) {
+			return $currencies;
+		}
+
+		if ( $rates = $response['data']->content->currencies ) {
+			foreach ( $rates as $currency ) {
+				$currencies[ $currency->name ] = ucfirst( $currency->longName );
+			}
+		}
+		update_option('payger_possible_currencies', $currencies );
+
+		return $currencies;
 	}
 
 	/**
@@ -426,9 +457,11 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			$amount  = $order->get_total();
 		}
 
-		$args = array('from' => $selling_currency, 'to'=> $choosen_crypto, 'amount' => $amount );
-
-
+		$args = array(
+			'from'   => $selling_currency,
+			'to'     => $choosen_crypto,
+			'amount' => $amount
+		);
 		$response = Payger::get( 'merchants/exchange-rates', $args );
 
 		$success = ( 200 === $response['status'] ) ? true : false; //bad response if status different from 200
@@ -473,8 +506,26 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		$payment_id = $order->get_meta('payger_payment_id', true);
 
-		//$this->payger->delete( 'merchants/payments/' . $payment_id, array() );
 		Payger::delete( 'merchants/payments/' . $payment_id, array() );
+	}
+
+
+	/**
+	 * Output redirect or iFrame form on receipt page
+	 * This is only necessary for synchronous payment
+	 * process.
+	 * This will include modal content on payment page
+	 *
+	 * @access public
+	 *
+	 * @param $order_id
+	 */
+	public function receipt_page( $order_id ) {
+
+		require_once plugin_dir_path( __FILE__ ) . '/../public/partials/pay-modal.php';
+
+		echo $html;
+
 	}
 
 }
