@@ -98,9 +98,6 @@ class Woocommerce_Payger_Public {
 	 * @author Ana Aires ( ana@widgilabs.com )
 	 */
 	public function update_thank_you( $order_id ) {
-
-		error_log('UPDATE THANK YOU PAGE');
-
 		$order   = new WC_Order( $order_id );
 
 		if( 'on-hold' !== $order->get_status() ){

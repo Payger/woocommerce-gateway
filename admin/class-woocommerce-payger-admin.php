@@ -219,10 +219,12 @@ class Woocommerce_Payger_Admin {
 			return; //order not on-hold
 		}
 
-		$qrCode  = $order->get_meta( 'payger_qrcode_image' );
-		$address = $order->get_meta('payger_address');
-		$currency = $order->get_meta('payger_currency');
-		$amount   = $order->get_meta('payger_ammount');
+		$qrCode  = $order->get_meta( 'payger_qrcode_image', true );
+		$address = $order->get_meta('payger_address', true );
+		$currency = $order->get_meta('payger_currency', true );
+		$amount   = $order->get_meta('payger_ammount', true );
+
+		error_log('I AM WRITING ON EMAIL THE AMOUNT '. $order->get_id() . '->'.$amount);
 
 		$message = apply_filters( 'payger_thankyou_previous_qrCode', __('Please use the following qrCode to process your payment.', 'payger') );
 
@@ -335,7 +337,6 @@ class Woocommerce_Payger_Admin {
 
 				break;
 			case 'UNDERPAID' :
-
 				error_log('UNDERPAID ');
 
 				//check for missing amount
@@ -348,7 +349,7 @@ class Woocommerce_Payger_Admin {
 					}
 				}
 
-				$missing_value = $total - $paid ;
+				$missing_value = $total - $paid;
 
 				// update order not stating there is missing amount and new email was sent
 				$order->add_order_note( __( 'Payment is verified but not completed. Missing amount of ', 'payger' ) . $missing_value . $output_currency . __( ' an email was sent to the buyer.', 'payger' ) );
@@ -368,8 +369,7 @@ class Woocommerce_Payger_Admin {
 				if ( $success ) {
 
 					$subpayments = $response['data']->content->subPayments;
-					error_log('SUBPAYMENTS');
-					error_log(print_r($subpayments, true));
+
 
 					//we need to check the pending subpayment, this
 					//will be the one with the data for the missing
@@ -377,8 +377,11 @@ class Woocommerce_Payger_Admin {
 					foreach( $subpayments as $subpayment ) {
 						if ( 'pending' == $subpayment->status ) {
 							$payment = $subpayment;
+							break;
 						}
 					}
+
+					//  error_log(print_r($payment, true));
 					$qrCode  = $payment->qrCode;
 					$address = $payment->address;
 
@@ -399,12 +402,13 @@ class Woocommerce_Payger_Admin {
 
 					$qrcode_image = $uploads['baseurl'] . $filename;
 
-
 					//update store values for qrcode
-					$order->update_meta_data( 'payger_ammount', $payment->inputAmount   );
+					$order->update_meta_data( 'payger_ammount', $payment->inputAmount );
 					$order->update_meta_data( 'payger_qrcode', $qrCode );
 					$order->update_meta_data( 'payger_qrcode_image', $qrcode_image ); //stores qrcode url so that email can use this.
 					$order->update_meta_data( 'payger_address', $address );
+
+					$order->save_meta_data();
 
 					// trigger new email
 					error_log('TRIGGER CUSTOMER UNDERPAID EMAIL');
@@ -428,7 +432,7 @@ class Woocommerce_Payger_Admin {
 					error_log('CHANGING THE STATUS FOR OVERPAID ORDER THIS SHOULD TRIGGEr THE EMAI');
 					$order->update_status( 'processing', __( 'Payger Payment Confirmed', 'payger' ) );
 
-					$order->add_order_note( __( 'Payment is verified and completed. The amount of ', 'payger' ) . $overpaid . __(' was overpaid.', 'payger' ) );
+					$order->add_order_note( __( 'Payment is verified and completed. The amount of ', 'payger' ) . $overpaid . $output_currency . __(' was overpaid.', 'payger' ) );
 				}
 
 				//clear hook
@@ -470,6 +474,7 @@ class Woocommerce_Payger_Admin {
 					foreach( $subpayments as $subpayment ) {
 						if ( 'pending' == $subpayment->status ) {
 							$payment = $subpayment;
+							break;
 						}
 					}
 					$qrCode   = $payment->qrCode;
@@ -498,6 +503,8 @@ class Woocommerce_Payger_Admin {
 					$order->update_meta_data( 'payger_qrcode', $qrCode );
 					$order->update_meta_data( 'payger_qrcode_image', $qrcode_image ); //stores qrcode url so that email can use this.
 					$order->update_meta_data( 'payger_address', $address );
+
+					$order->save_meta_data();
 
 					//update store values for qrcode
 
@@ -549,15 +556,11 @@ class Woocommerce_Payger_Admin {
 	 */
 
 	public function trigger_email( $order_id, $email_id ) {
-
-		error_log('TRY TO SEND EMAIL '. $email_id . ' FOR '.$order_id );
-
 		$mailer = WC()->mailer();
 		$mails = $mailer->get_emails();
 
 		foreach ( $mails as $mail ) {
 			if ( $mail->id == $email_id ) {
-				error_log('TRIGGERED');
 				$mail->trigger( $order_id );
 			}
 		}

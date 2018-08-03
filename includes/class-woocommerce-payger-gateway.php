@@ -338,14 +338,12 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		$response = Payger::post( 'merchants/payments/', $args );
 
-		error_log(print_r($response, true));
+		error_log('RESPONSE');
+		error_log(print_r($response,true));
 
 		$success = ( 201 === $response['status'] ) ? true : false; //bad response if status different from 201
 
 		if ( $success && ! $error_message ) {
-
-			error_log('SUCCESSSSSS');
-			error_log(print_r($response['data']->content, true));
 
 			$payment_id = $response['data']->content->id;
 
@@ -370,12 +368,12 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			file_put_contents( $upload_path . $filename, $data );
 
 			//save meta to possible queries and to show information on thank you page or emails
-			$order->add_meta_data( 'payger_currency', $asset );
-			$order->add_meta_data( 'payger_ammount', $payment->inputAmount   );
-			$order->add_meta_data( 'payger_qrcode', $qrCode );
-			$order->add_meta_data( 'payger_qrcode_image', $uploads['baseurl'] . $filename ); //stores qrcode url so that email can use this.
-			$order->add_meta_data( 'payger_payment_id', $payment_id );
-			$order->add_meta_data( 'payger_address', $address );
+			$order->add_meta_data( 'payger_currency', $asset, true );
+			$order->add_meta_data( 'payger_ammount', $payment->inputAmount, true );
+			$order->add_meta_data( 'payger_qrcode', $qrCode, true);
+			$order->add_meta_data( 'payger_qrcode_image', $uploads['baseurl'] . $filename, true ); //stores qrcode url so that email can use this.
+			$order->add_meta_data( 'payger_payment_id', $payment_id, true );
+			$order->add_meta_data( 'payger_address', $address, true );
 			$order->add_meta_data( 'payger_expired', 0); //controls number of expirations
 
 			// Mark as on-hold (we're awaiting the cheque)
@@ -434,19 +432,17 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		$args = array('from' => $selling_currency, 'to'=> $choosen_crypto, 'amount' => $amount );
 
-		error_log('GET QUOTE');
-		error_log(print_r($args, true));
+//		error_log('GET QUOTE');
+//		error_log(print_r($args, true));
 
 		$response = Payger::get( 'merchants/exchange-rates', $args );
 		
-		error_log('GET QUOTE RESPNSE');
-		error_log( print_r( $response, true ) );
+//		error_log('GET QUOTE RESPNSE');
+//		error_log( print_r( $response, true ) );
 
 		$success = ( 200 === $response['status'] ) ? true : false; //bad response if status different from 200
 
 		if ( $success ) {
-
-			error_log('SUCCESS');
 			$result    = $response['data']->content->rates;
 			$result    = $result[0]; //I am interested in a single quote
 			$limit     = $result->limit;
@@ -466,7 +462,6 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 			return array( 'rate' => $rate, 'amount' => $amount );
 		} else {
-			error_log('FAILURE');
 			$error_message = $response['data']->error->message;
 			$error_message = apply_filters( 'payger_get_quote_error_message', $error_message );
 			wc_add_notice( __('Payment error: ', 'payger') . $error_message, 'error' );
