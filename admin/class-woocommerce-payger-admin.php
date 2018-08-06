@@ -218,12 +218,10 @@ class Woocommerce_Payger_Admin {
 			return; //order not on-hold
 		}
 
-		$qrCode  = $order->get_meta( 'payger_qrcode_image', true );
-		$address = $order->get_meta('payger_address', true );
-		$currency = $order->get_meta('payger_currency', true );
-		$amount   = $order->get_meta('payger_ammount', true );
-
-		error_log('I AM WRITING ON EMAIL THE AMOUNT '. $order->get_id() . '->'.$amount);
+		$qrCode   = $order->get_meta( 'payger_qrcode_image', true );
+		$address  = $order->get_meta( 'payger_address', true );
+		$currency = $order->get_meta( 'payger_currency', true );
+		$amount   = $order->get_meta( 'payger_ammount', true );
 
 		$message = apply_filters( 'payger_thankyou_previous_qrCode', __('Please use the following qrCode to process your payment.', 'payger') );
 
@@ -234,7 +232,7 @@ class Woocommerce_Payger_Admin {
 						<span>%3$s</span>
 					</div>
 					 <p><img src="%1$s" alt="%8$s"></p>
-					  <p>%6$s %4$s %7$s %5$s </p>',
+					  <p>%6$s %4$s %7$s %5$s </p>', //You will pay 0,00054 in BTC
 				$qrCode,              //1
 				esc_html( $message ), //2
 				esc_html( $address ), //3

@@ -225,6 +225,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			}
 		}
 
+
 		$order_id = get_query_var( 'order-pay' ) ? absint( get_query_var( 'order-pay' ) ) : 0;
 
 		if( ! empty( $options ) ) {
@@ -238,22 +239,24 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 						%3$s
 					</select>
 					<input type="hidden" class="order_id" value="%11$s">
-					<div id="payger_convertion" class="hide">%5$s <span class="payger_amount"></span> %6$s <span class="payger_rate"></span> = 1 %7$s</div>
+					<div id="payger_convertion" class="hide">%5$s <span class="payger_amount"></span><sup>*</sup> <span class="currency"></span> %6$s <span class="payger_rate"></span> <span class="currency"></span> = 1 %7$s</div>
 				</p>
+				<span class="warning hide">%12$s</span>
 				<div class="hide" id="dialog" title="Payger Confirmation">
   					<p>%8$s <span class="update_amount"></span> %9$s <span class="update_rate"></span> = 1 %7$s %10$s</p>
 				</div>',
-				__( 'Choose Currency', 'payger' ),
-				$this->id,
-				$options,
-				__( 'Please choose one...' , 'payger' ),
-				__('You will pay', 'payger'),
-				__('at rate', 'payger'),
-				esc_html( $selling_currency ),
-				__( 'Your currency rate was recently updated. You will pay a total amount of', 'payger' ),
-				__( 'corresponding to a rate of', 'payger' ),
-				__( 'Please confirm you want to proceed with your order.', 'payger' ),
-				$order_id
+				__( 'Choose Currency', 'payger' ), //1
+				$this->id, //2
+				$options, //3
+				__( 'Please choose one...' , 'payger' ), //4
+				__('You will pay', 'payger'), //5
+				__('at rate', 'payger'), //6
+				esc_html( $selling_currency ), //7
+				__( 'Your currency rate was recently updated. You will pay a total amount of', 'payger' ), //8
+				__( 'corresponding to a rate of', 'payger' ), //9
+				__( 'Please confirm you want to proceed with your order.', 'payger' ), //10
+				esc_attr( $order_id ), //11
+				esc_html( __( '*This is an estimate value. Due to cryptocurrency volatility this rate may change. Please take this into consideration.', 'payger' ) ) //12
 			);
 		}
 
@@ -271,9 +274,6 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 	 * @author Ana Aires ( ana@widgilabs.com )
 	 */
 	public function process_payment( $order_id ) {
-		error_log('--------------------------------------------> PROCESS PAYMENT');
-
-		error_log('TYPE OF PAYMENT '.$this->get_option( 'payment_type' ));
 
 		//For SCENARIO 2
 		if ( 'sync' === $this->get_option( 'payment_type' ) ) {
