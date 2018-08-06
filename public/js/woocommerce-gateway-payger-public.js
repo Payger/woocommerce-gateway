@@ -136,9 +136,6 @@
                     var update_amount = response.data.amount;
 
                     if ($rate !== update_rate) {
-
-                        console.log('RATES ARE DIFFERENT');
-
                         $('.update_amount').html(update_amount);
                         $('.update_rate').html(update_rate);
                         $("#dialog").dialog({
@@ -166,7 +163,6 @@
                         });
                         //rate changed so lets ask for user confirmation
                     } else {
-                        console.log('SAME RATE PROCEED');
                         processing = true;
                         checkout_form.unblock();
                         checkout_form.submit();
