@@ -180,7 +180,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 				'title'       => __( 'Accepted Currencies', 'payger' ),
 				'type'        => 'multiselect',
 				'class'       => 'wc-enhanced-select',
-				'description' => __( 'Choose which are the currencies you will allow users to pay with. This depends on your shop currency choosen on Woocommerce General Options ', 'payger' ),
+				'description' => __( 'Choose which are the currencies you will allow users to pay with. This depends on your shop currency choosen on Woocommerce General Options. If no options are available it means your shop currency can\'t be converted to any cryptocurrency, please choose a different one you want to use Payger. ', 'payger' ),
 				'default'     => 'bitcoin',
 				'desc_tip'    => true,
 				'options'     => $this->get_accepted_currencies_options(),
@@ -418,7 +418,8 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		$selling_currency = get_option('woocommerce_currency');
 
 		$args = array('from' => $selling_currency, 'amount' => 10 ); //we need to pass an amoun it's a bridge requirement
-		$response = Payger::get( 'merchants/currencies' );
+
+		$response = Payger::get( 'merchants/exchange-rates', $args );
 
 		$currencies = array();
 
@@ -426,9 +427,9 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			return $currencies;
 		}
 
-		if ( $rates = $response['data']->content->currencies ) {
+		if ( $rates = $response['data']->content->rates ) {
 			foreach ( $rates as $currency ) {
-				$currencies[ $currency->name ] = ucfirst( $currency->longName );
+				$currencies[ $currency->currency ] = ucfirst( $currency->currency );
 			}
 		}
 		update_option('payger_possible_currencies', $currencies );
