@@ -439,9 +439,10 @@ class Woocommerce_Payger_Admin {
 			case 'EXPIRED' :
 				error_log('EXPIRED ');
 
+				$max = $this->payger->get_option( 'max_expired' );
+
 				$expired = $order->get_meta( 'payger_expired', true );
-				if ( 5 == $expired ) { //TODO this could be a setting
-					error_log('ORDER EXPIRED FOR 5 Times and will now be cancelled');
+				if ( $max == $expired ) { //TODO this could be a setting
 					$order->update_status( 'failed', __( 'Payger Payment Expired 5 times', 'payger' ) );
 					//clear hook
 					wp_clear_scheduled_hook( 'payger_check_payment', array( 'payment_id' => $payment_id, 'order_id' => $order_id ) );

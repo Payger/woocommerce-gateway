@@ -185,6 +185,13 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 				'desc_tip'    => true,
 				'options'     => $this->get_accepted_currencies_options(),
 			),
+			'max_expired' => array(
+				'title'       => __( 'Max Expired', 'payger' ),
+				'type'        => 'number',
+				'description' => __( 'Define the number of times an expired order will ask for payment to the user. Default is set to 5.', 'payger' ),
+				'default'     => 5,
+				'desc_tip'    => true,
+			),
 			'payment_type' => array(
 				'title'       => __( 'Payment Type', 'payger' ),
 				'type'        => 'select',
