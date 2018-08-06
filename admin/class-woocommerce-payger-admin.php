@@ -218,12 +218,10 @@ class Woocommerce_Payger_Admin {
 			return; //order not on-hold
 		}
 
-		$qrCode  = $order->get_meta( 'payger_qrcode_image', true );
-		$address = $order->get_meta('payger_address', true );
-		$currency = $order->get_meta('payger_currency', true );
-		$amount   = $order->get_meta('payger_ammount', true );
-
-		error_log('I AM WRITING ON EMAIL THE AMOUNT '. $order->get_id() . '->'.$amount);
+		$qrCode   = $order->get_meta( 'payger_qrcode_image', true );
+		$address  = $order->get_meta( 'payger_address', true );
+		$currency = $order->get_meta( 'payger_currency', true );
+		$amount   = $order->get_meta( 'payger_ammount', true );
 
 		$message = apply_filters( 'payger_thankyou_previous_qrCode', __('Please use the following qrCode to process your payment.', 'payger') );
 
@@ -234,7 +232,7 @@ class Woocommerce_Payger_Admin {
 						<span>%3$s</span>
 					</div>
 					 <p><img src="%1$s" alt="%8$s"></p>
-					  <p>%6$s %4$s %7$s %5$s </p>',
+					  <p>%6$s %4$s %7$s %5$s </p>', //You will pay 0,00054 in BTC
 				$qrCode,              //1
 				esc_html( $message ), //2
 				esc_html( $address ), //3
@@ -441,9 +439,10 @@ class Woocommerce_Payger_Admin {
 			case 'EXPIRED' :
 				error_log('EXPIRED ');
 
+				$max = $this->payger->get_option( 'max_expired' );
+
 				$expired = $order->get_meta( 'payger_expired', true );
-				if ( 5 == $expired ) { //TODO this could be a setting
-					error_log('ORDER EXPIRED FOR 5 Times and will now be cancelled');
+				if ( $max == $expired ) { //TODO this could be a setting
 					$order->update_status( 'failed', __( 'Payger Payment Expired 5 times', 'payger' ) );
 					//clear hook
 					wp_clear_scheduled_hook( 'payger_check_payment', array( 'payment_id' => $payment_id, 'order_id' => $order_id ) );

@@ -30,6 +30,10 @@
     margin-left:auto;
 }
 
+.warning{
+    font-size: 13px;
+}
+
 /* Modal Box For Payments */
 .blocker {
     position: fixed;

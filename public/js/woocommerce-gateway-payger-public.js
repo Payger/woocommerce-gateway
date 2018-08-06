@@ -31,6 +31,7 @@
     // choose cryptocurrency on my-account trigger pay
     $('#payger_gateway_coin').change(function () {
         $('#payger_convertion').addClass('hide');
+        $('.warning').addClass('hide');
         $choosen_currency = $(this).val();
 
         if( $choosen_currency != 0 && ! processing_get_quote ) {
@@ -48,6 +49,7 @@
 
 
             $('#payger_convertion').addClass('hide');
+            $('.warning').addClass('hide');
 
             $choosen_currency = $(this).val();
             if( $choosen_currency != 0 && ! processing_get_quote ) {
@@ -134,9 +136,6 @@
                     var update_amount = response.data.amount;
 
                     if ($rate !== update_rate) {
-
-                        console.log('RATES ARE DIFFERENT');
-
                         $('.update_amount').html(update_amount);
                         $('.update_rate').html(update_rate);
                         $("#dialog").dialog({
@@ -164,7 +163,6 @@
                         });
                         //rate changed so lets ask for user confirmation
                     } else {
-                        console.log('SAME RATE PROCEED');
                         processing = true;
                         checkout_form.unblock();
                         checkout_form.submit();
@@ -203,6 +201,7 @@
 
         //hides convertion rates from previous currency
         $('#payger_convertion').addClass('hide');
+        $('.warning').addClass('hide');
 
 
         var order_key = false;
@@ -252,9 +251,11 @@
 
                     $('.payger_amount').html($amount);
                     $('.payger_rate').html($rate);
+                    $('.currency').html($choosen_currency);
 
                     setTimeout(function () {
                         $('#payger_convertion').removeClass('hide');
+                        $('.warning').removeClass('hide');
                     }, 500);
 
 
@@ -392,7 +393,7 @@
 
 
         // check order status each minute
-        // cancels if expires, or redict to thank you page if
+        // cancels if expires, or redirect to thank you page if
         // payment is detected
 
         var y = setInterval(function () {
