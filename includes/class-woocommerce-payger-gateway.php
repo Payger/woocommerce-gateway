@@ -239,11 +239,12 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 						%3$s
 					</select>
 					<input type="hidden" class="order_id" value="%11$s">
-					<div id="payger_convertion" class="hide">%5$s <span class="payger_amount"></span><sup>*</sup> <span class="currency"></span> %6$s <span class="payger_rate"></span> <span class="currency"></span> = 1 %7$s</div>
+					<div id="payger_convertion" class="hide">%5$s <span class="payger_amount"></span> <span class="currency"></span><sup>*</sup> %6$s <span class="payger_rate"></span> <span class="currency"></span> = 1 %7$s</div>
 				</p>
 				<span class="warning hide">%12$s</span>
 				<div class="hide" id="dialog" title="Payger Confirmation">
   					<p>%8$s <span class="update_amount"></span> <span class="currency"></span> %9$s <span class="update_rate"></span> <span class="currency"></span> = 1 %7$s %10$s</p>
+				<p class="warning hide">%12$s</p>
 				</div>',
 				__( 'Choose Currency', 'payger' ), //1
 				$this->id, //2
