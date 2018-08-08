@@ -449,6 +449,8 @@ class Woocommerce_Payger_Admin {
 					break;
 				}
 
+				$expired = $expired + 1;
+
 
 				$args = array(
 					'inputCurrency' => $input_currency,
@@ -501,6 +503,7 @@ class Woocommerce_Payger_Admin {
 					$order->update_meta_data( 'payger_qrcode', $qrCode );
 					$order->update_meta_data( 'payger_qrcode_image', $qrcode_image ); //stores qrcode url so that email can use this.
 					$order->update_meta_data( 'payger_address', $address );
+					$order->update_meta_data( 'payger_expired', $expired );
 
 					$order->save_meta_data();
 
@@ -510,7 +513,8 @@ class Woocommerce_Payger_Admin {
 					$this->trigger_email( $order_id, 'new_order' );
 
 					// update order not stating first address for payment expired
-					$order->add_order_note( __( 'First address for payment expired, new one sent to email ', 'payger' ) );
+					$expired_message = $expired - 1;
+					$order->add_order_note( __( 'Address # ' . $expired_message . ' for payment expired, new one sent to email ', 'payger' ) );
 				}
 
 				break;
