@@ -60,7 +60,7 @@ if ( $order->get_meta('payger_qrcode', true ) ) {
 	$input_amount = $order->get_meta( 'payger_ammount', true );
 } else {
 	$args = array (
-		'externalId'        => "$order_id" . time(),
+		'externalId'        => $order_id,
 		'description'       => $description,
 		'inputCurrency'	    => $currency,
 		'outputCurrency'    => $selling_currency,
