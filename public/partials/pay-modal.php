@@ -78,7 +78,6 @@ if ( $order->get_meta('payger_qrcode', true ) ) {
 	$response = Payger::post( 'merchants/payments/', $args );
 	$success  = ( 201 === $response['status'] ) ? true : false; //bad response if status different from 201
 
-
 	if ( $success ) {
 
 		$payment = $response['data']->content->subPayments;
@@ -125,7 +124,6 @@ if ( $order->get_meta('payger_qrcode', true ) ) {
 		// Remove cart
 		$woocommerce->cart->empty_cart();
 
-
 		//schedule event to check this payment status
 		wp_schedule_event( time(), 'minute', 'payger_check_payment', array(
 			'payment_id' => $payment_id,
@@ -135,8 +133,6 @@ if ( $order->get_meta('payger_qrcode', true ) ) {
 		$error_message = $response['data']->error->message;
 		$error_message = apply_filters( 'payger_payment_error_message', $error_message );
 		wc_add_notice( __('Payment error: ', 'payger') . $error_message, 'error' );
-		error_log('ERROR MESSAGE '.$error_message);
-	//	wp_safe_redirect( $order->get_checkout_payment_url( true ) );
 	}
 }
 
