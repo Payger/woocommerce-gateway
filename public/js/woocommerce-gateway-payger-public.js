@@ -286,8 +286,10 @@
     // to pay-order page where order id is already created and we can properly
     // generate payment.
     if( $('body').hasClass('woocommerce-order-pay') ) {
-        //trigger the modal on order pay page.
-        $("#modal").trigger("click");
+        //trigger the modal on order pay page if no errors
+        if( ! $('.woocommerce-error')[0] ) {
+            $("#modal").trigger("click");
+        }
     }
 
 
