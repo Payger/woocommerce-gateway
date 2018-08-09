@@ -23,6 +23,7 @@ global $woocommerce;
 $session_data = WC()->session->get( 'crypto_meta' );
 
 if( empty( $session_data ) ) {
+	error_log('EMPTY SESSION DATA');
 	return;
 }
 
@@ -74,6 +75,8 @@ if ( $order->get_meta('payger_qrcode', true ) ) {
 	$order->add_order_note( __('DEBUG CALLBACK '.WC()->api_request_url( 'WC_Gateway_Payger' ), 'payger' ) );
 
 	$response = Payger::post( 'merchants/payments/', $args );
+
+	error_log(print_r($response,true));
 
 	$success = ( 201 === $response['status'] ) ? true : false; //bad response if status different from 201
 
