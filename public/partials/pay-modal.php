@@ -136,7 +136,7 @@ if ( $order->get_meta('payger_qrcode', true ) ) {
 		$error_message = apply_filters( 'payger_payment_error_message', $error_message );
 		wc_add_notice( __('Payment error: ', 'payger') . $error_message, 'error' );
 		error_log('ERROR MESSAGE '.$error_message);
-		wp_safe_redirect( $order->get_checkout_payment_url( true ) );
+	//	wp_safe_redirect( $order->get_checkout_payment_url( true ) );
 	}
 }
 
