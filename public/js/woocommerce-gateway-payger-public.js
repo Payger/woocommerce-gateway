@@ -287,7 +287,9 @@
     // generate payment.
     if( $('body').hasClass('woocommerce-order-pay') ) {
         //trigger the modal on order pay page.
-        $("#modal").trigger("click");
+        if( ! $('.woocommerce-error')[0] ) {
+            $("#modal").trigger("click");
+        }
     }
 
 
