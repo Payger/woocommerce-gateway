@@ -322,7 +322,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		//check for currency limits
 		$args = array (
 
-			'externalId'        => $order_id,
+			'externalId'        => $order_id . time(),
 			'description'       => $cart_items,
             'inputCurrency'	    => $asset,
             'outputCurrency'    => $selling_currency,

@@ -62,7 +62,7 @@ if ( $order->get_meta('payger_qrcode', true ) ) {
 } else {
 	$new_order = true;
 	$args      = array(
-		'externalId'        => $order_id,
+		'externalId'        => $order_id . time(),
 		'description'       => $description,
 		'inputCurrency'     => $currency,
 		'outputCurrency'    => $selling_currency,
