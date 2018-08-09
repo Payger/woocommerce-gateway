@@ -186,8 +186,7 @@ $html .= '</div>';
 $html .= '	<div class="single-item-order__row selected-currency">
 					<div class="single-item-order--left">
 						<div class="single-item-order--left__currency">
-							<img src="assets/images/currency_logos/btc.svg">
-							Bitcoin
+							' . $currency . '
 						</div>
 					</div>
 
@@ -204,21 +203,8 @@ $html .= '</div>'; //.single-item-order;
 $html .= '<line-items class="expanded">
 				<div class="line-items">
 				<div>
-					<div class="line-items__item">
-						<div class="line-items__item__label" i18n="">' . __('Payment Amount', 'payger') . '</div>
-						<div class="line-items__item__value">' . $input_amount . ' '. $currency .'</div>
-					</div>
-					<div class="line-items__item">
-						<div class="line-items__item__label">
-							<span i18n="">Network Cost</span>
-							<a href="https://help.bitpay.com/paying-with-bitcoin/why-am-i-being-charged-an-additional-network-cost-on-my-bitpay-invoice" target="_blank">';
-$html .= '<img src="' . plugin_dir_url( __FILE__ ) . '../assets/images/invoice-fee-question.svg ">';
-$html .=				'</a>
-						</div>
-						<div class="line-items__item__value">0.000007 '. $currency . '</div>
-					</div>
 					<div class="line-items__item line-items__item--total">
-						<div class="line-items__item__label" i18n="">' . __('Total', 'payger') . '</div>
+						<div class="line-items__item__label" i18n="">' . __('Payment amount', 'payger') . '</div>
 						<div class="line-items__item__value">' . $input_amount . ' '. $currency .'</div>
 					</div>
 				</div>
