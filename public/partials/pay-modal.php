@@ -52,87 +52,93 @@ $description      = __( 'Payment for: ', 'payger' ) . $cart_items;
 $selling_currency = get_option('woocommerce_currency');
 
 
-$success = false;
+$success   = false;
+
 //we already have this data so we are not creating a new payment
 if ( $order->get_meta('payger_qrcode', true ) ) {
-
 	$qrCode       = $order->get_meta( 'payger_qrcode', true );
 	$address      = $order->get_meta( 'payger_address', true );
 	$input_amount = $order->get_meta( 'payger_ammount', true );
 } else {
-	$args = array (
+	$new_order = true;
+	$args      = array(
 		'externalId'        => $order_id,
 		'description'       => $description,
-		'inputCurrency'	    => $currency,
+		'inputCurrency'     => $currency,
 		'outputCurrency'    => $selling_currency,
 		'source'            => $site_name,
-		'outputAmount'	    => $amount,
-		'buyerName'	        => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
-		'buyerEmailAddress'	=> $order->get_billing_email(),
+		'outputAmount'      => $amount,
+		'buyerName'         => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
+		'buyerEmailAddress' => $order->get_billing_email(),
 		'callback'          => array( 'url' => WC()->api_request_url( 'WC_Gateway_Payger' ), 'method' => 'POST' ),
 	);
 
-	$order->add_order_note( __('DEBUG CALLBACK '.WC()->api_request_url( 'WC_Gateway_Payger' ), 'payger' ) );
+	$order->add_order_note( __( 'DEBUG CALLBACK ' . WC()->api_request_url( 'WC_Gateway_Payger' ), 'payger' ) );
 
 	$response = Payger::post( 'merchants/payments/', $args );
+	$success  = ( 201 === $response['status'] ) ? true : false; //bad response if status different from 201
 
-	error_log(print_r($response,true));
 
-	$success = ( 201 === $response['status'] ) ? true : false; //bad response if status different from 201
+	if ( $success ) {
 
-}
+		$payment = $response['data']->content->subPayments;
+		$payment = $payment[0];
 
-if ( $success ) {
+		$payment_id = $payment->id;
+		$qrCode     = $payment->qrCode;
+		$address    = $payment->address;
 
-	$payment = $response['data']->content->subPayments;
-	$payment = $payment[0];
+		$data        = base64_decode( $qrCode->content );
+		$uploads     = wp_upload_dir();
+		$upload_path = $uploads['basedir'];
+		$filename    = '/payger_tmp/' . $order_id . '.png';
 
-	$payment_id = $payment->id;
-	$qrCode     = $payment->qrCode;
-	$address    = $payment->address;
+		// create temporary directory if does not exists
+		if ( ! file_exists( $upload_path . '/payger_tmp' ) ) {
+			mkdir( $upload_path . '/payger_tmp' );
+		}
 
-	$data        = base64_decode( $qrCode->content );
-	$uploads     = wp_upload_dir();
-	$upload_path = $uploads['basedir'];
-	$filename    = '/payger_tmp/' . $order_id . '.png';
+		//always update file so that if qrcode changes for this
+		//payment the code is still valid
+		file_put_contents( $upload_path . $filename, $data );
 
-	// create temporary directory if does not exists
-	if ( ! file_exists( $upload_path . '/payger_tmp' ) ) {
-		mkdir( $upload_path . '/payger_tmp' );
+		$qrcode_img = $uploads['baseurl'] . $filename;
+
+		$input_amount = $payment->inputAmount;
+
+		//save meta to possible queries and to show information on thank you page or emails
+		$order->add_meta_data( 'payger_currency', $asset );
+		$order->add_meta_data( 'payger_ammount', $input_amount );
+		$order->add_meta_data( 'payger_qrcode', $qrCode );
+		$order->add_meta_data( 'payger_qrcode_image', $qrcode_img ); //stores qrcode url so that email can use this.
+		$order->add_meta_data( 'payger_payment_id', $payment_id );
+		$order->add_meta_data( 'payger_address', $address );
+
+		// Mark as on-hold (we're awaiting the cheque)
+		//$order->update_status( 'on-hold', __( 'Awaiting Payger payment', 'payger' ) );
+		$order->add_order_note( __( 'DEBUG PAYMENT ID ' . $payment_id, 'payger' ) );
+
+		wc_reduce_stock_levels( $order_id );
+
+		$order->save();
+
+		// Remove cart
+		$woocommerce->cart->empty_cart();
+
+
+		//schedule event to check this payment status
+		wp_schedule_event( time(), 'minute', 'payger_check_payment', array(
+			'payment_id' => $payment_id,
+			'order_id'   => $order_id
+		) );
+	} else {
+		$error_message = $response['data']->error->message;
+		$error_message = apply_filters( 'payger_payment_error_message', $error_message );
+		wc_add_notice( __('Payment error: ', 'payger') . $error_message, 'error' );
+		error_log('ERROR MESSAGE '.$error_message);
+		wp_safe_redirect( $order->get_checkout_payment_url( true ) );
 	}
-
-	//always update file so that if qrcode changes for this
-	//payment the code is still valid
-	file_put_contents( $upload_path . $filename, $data );
-
-	$qrcode_img = $uploads['baseurl'] . $filename;
-
-	$input_amount = $payment->inputAmount;
-
-	//save meta to possible queries and to show information on thank you page or emails
-	$order->add_meta_data( 'payger_currency', $asset );
-	$order->add_meta_data( 'payger_ammount',  $input_amount  );
-	$order->add_meta_data( 'payger_qrcode', $qrCode );
-	$order->add_meta_data( 'payger_qrcode_image', $qrcode_img ); //stores qrcode url so that email can use this.
-	$order->add_meta_data( 'payger_payment_id', $payment_id );
-	$order->add_meta_data( 'payger_address', $address );
-
-	// Mark as on-hold (we're awaiting the cheque)
-	//$order->update_status( 'on-hold', __( 'Awaiting Payger payment', 'payger' ) );
-	$order->add_order_note( __( 'DEBUG PAYMENT ID ' . $payment_id, 'payger' ) );
-
-	wc_reduce_stock_levels( $order_id );
-
-	$order->save();
-
-	// Remove cart
-	$woocommerce->cart->empty_cart();
-
-
-	//schedule event to check this payment status
-	wp_schedule_event( time(), 'minute', 'payger_check_payment', array( 'payment_id' => $payment_id, 'order_id' => $order_id ) );
 }
-
 
 $html  = '<input type="hidden" class="order_id" value="' . $order_id . '">';
 $html .= '<p><a id="modal" href="#ex1" rel="modal:open" class="hide">Open Modal</a></p>';
