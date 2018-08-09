@@ -315,7 +315,6 @@ class Woocommerce_Payger_Admin {
 		$input_currency  = $order->get_meta( 'payger_currency' );
 		$output_currency = get_option('woocommerce_currency');
 
-
 		error_log('PAYMENT STATUS ' .$status );
 
 		switch( $status ) {
@@ -510,7 +509,7 @@ class Woocommerce_Payger_Admin {
 					//update store values for qrcode
 
 					//trigger new email
-					$this->trigger_email( $order_id, 'new_order' );
+					WC()->mailer()->emails['WC_Email_Customer_On_Hold_Order']->trigger( $order_id, $order );
 
 					// update order not stating first address for payment expired
 					$expired_message = $expired - 1;
@@ -580,6 +579,8 @@ class Woocommerce_Payger_Admin {
 	public function trigger_email( $order_id, $email_id ) {
 		$mailer = WC()->mailer();
 		$mails = $mailer->get_emails();
+
+		error_log( print_r( $mails, true ) );
 
 		foreach ( $mails as $mail ) {
 			if ( $mail->id == $email_id ) {
