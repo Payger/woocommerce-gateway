@@ -333,7 +333,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			'callback'          => array( 'url' => WC()->api_request_url( 'WC_Gateway_Payger' ), 'method' => 'POST' ),
 		);
 
-		$order->add_order_note( __('DEBUG CALLBACK '.WC()->api_request_url( 'WC_Gateway_Payger' ), 'payger' ) );
+		//$order->add_order_note( __('DEBUG CALLBACK '.WC()->api_request_url( 'WC_Gateway_Payger' ), 'payger' ) );
 
 		$response = Payger::post( 'merchants/payments/', $args );
 
@@ -382,7 +382,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 			// Mark as on-hold (we're awaiting the cheque)
 			$order->update_status( 'on-hold', __( 'Awaiting Payger payment', 'payger' ) );
-			$order->add_order_note( __( 'DEBUG PAYMENT ID ' . $payment_id, 'payger' ) );
+			//$order->add_order_note( __( 'DEBUG PAYMENT ID ' . $payment_id, 'payger' ) );
 
 			//do not reduce stock levels at this point, payment is not set
 			wc_reduce_stock_levels( $order_id );

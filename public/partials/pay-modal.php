@@ -72,7 +72,7 @@ if ( $order->get_meta('payger_qrcode', true ) ) {
 		'callback'          => array( 'url' => WC()->api_request_url( 'WC_Gateway_Payger' ), 'method' => 'POST' ),
 	);
 
-	$order->add_order_note( __( 'DEBUG CALLBACK ' . WC()->api_request_url( 'WC_Gateway_Payger' ), 'payger' ) );
+	//$order->add_order_note( __( 'DEBUG CALLBACK ' . WC()->api_request_url( 'WC_Gateway_Payger' ), 'payger' ) );
 
 	$response = Payger::post( 'merchants/payments/', $args );
 	$success  = ( 201 === $response['status'] ) ? true : false; //bad response if status different from 201
@@ -83,7 +83,7 @@ if ( $order->get_meta('payger_qrcode', true ) ) {
 		$payment = $response['data']->content->subPayments;
 		$payment = $payment[0];
 
-		$payment_id = $payment->id;
+		$payment_id = $payment->id; //FIXME on modal this is not set
 		$qrCode     = $payment->qrCode;
 		$address    = $payment->address;
 
@@ -115,7 +115,7 @@ if ( $order->get_meta('payger_qrcode', true ) ) {
 
 		// Mark as on-hold (we're awaiting the cheque)
 		//$order->update_status( 'on-hold', __( 'Awaiting Payger payment', 'payger' ) );
-		$order->add_order_note( __( 'DEBUG PAYMENT ID ' . $payment_id, 'payger' ) );
+		//$order->add_order_note( __( 'DEBUG PAYMENT ID ' . $payment_id, 'payger' ) );
 
 		wc_reduce_stock_levels( $order_id );
 
