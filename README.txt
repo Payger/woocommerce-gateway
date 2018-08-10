@@ -33,7 +33,7 @@ Key Features:
 This plugin requires WooCommerce and a Payger account. Please make sure you have WooCommerce installed and a Payger account created.
 
 1. Go to [Payger](https://payger.com) and register as a Business.
-2. On Payger Account get your username and password.
+2. On Payger Account get your API KEY (username) and  API Secret (password).
 3. Upload `woocommerce-gateway-payger` to the `/wp-content/plugins/` directory
 4. Activate the plugin through the 'Plugins' menu in WordPress
 5. On the Dashboard go to WooCommerce > Settings > Checkout > Payger and do the following
@@ -62,12 +62,17 @@ On that popup there will be all the information to make the payment. The buyer m
 If the buyer does not finish the payment within 15 minutes the order is cancelled. It's exactly the same behaviour as if you define 15 minutes as your hold stock time.
 For that time the order will be "pending payment"
 
+= What to do if the order expires? =
+
+The buyer will need to select the products again and go to cart and checkout page.
+
 
 == Screenshots ==
 
-1. This screen shot description corresponds to screenshot-1.(png|jpg|jpeg|gif). Note that the screenshot is taken from
-the /assets directory or the directory that contains the stable readme.txt (tags or trunk). Screenshots in the /assets
-directory take precedence. For example, `/assets/screenshot-1.png` would win over `/tags/4.3/screenshot-1.png`
-(or jpg, jpeg, gif).
-2. This is the second screen shot
-
+1. Payger API Keys Tab
+2. API Key successfully created. Username is you API Key and Password is your API secret.
+3. Payger payment gateway settings tab under WooCommerce Settings
+4. Checkout page select currency
+5. Checkout page currency rate information for the selected cryptocurrency
+6. Popup with address to pay and payment information
+7. Popup when payment gets expired and order canceled
