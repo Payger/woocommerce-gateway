@@ -1,9 +1,8 @@
 === Plugin Name ===
-Contributors: aaires
-Donate link: http://www.widgilabs.com
-Tags: woocommerce, payger, payment gateway
+Contributors: payger, aaires, widgilabs
+Tags: woocommerce, payger, payment gateway, payment, cryptocurrency, bitcoin
 Requires at least: 3.0.1
-Tested up to: 3.4
+Tested up to: 4.9.6
 Stable tag: 4.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -12,47 +11,57 @@ Payger Woocommerce Gateway
 
 == Description ==
 
-Extends Woocommerce Gateways to accept payments with bitcoins through Payger
+Extends Woocommerce Gateways to accept payments with cryptocurrencies through Payger.
 
-A few notes about the sections above:
+Payger Woocommerce Gateway is a FREE WordPress plugin by [Payger](https://payger.com).
+Start accepting Bitcoins, Ethereum or other cryptocurrencies on Your Woocommerce online store.
+Increase your sales as you add all major altcoins as payment option for your customers.
 
-*   "Contributors" is a comma separated list of wp.org/wp-plugins.org usernames
-*   "Tags" is a comma separated list of tags that apply to the plugin
-*   "Requires at least" is the lowest version that the plugin will work on
-*   "Tested up to" is the highest version that you've *successfully used to test the plugin*. Note that it might work on
-higher versions... this is just the highest one you've verified.
-*   Stable tag should indicate the Subversion "tag" of the latest stable version, or "trunk," if you use `/trunk/` for
-stable.
+Key Features:
 
-    Note that the `readme.txt` of the stable tag is the one that is considered the defining one for the plugin, so
-if the `/trunk/readme.txt` file says that the stable tag is `4.3`, then it is `/tags/4.3/readme.txt` that'll be used
-for displaying information about the plugin.  In this situation, the only thing considered from the trunk `readme.txt`
-is the stable tag pointer.  Thus, if you develop in trunk, you can update the trunk `readme.txt` to reflect changes in
-your in-development version, without having that information incorrectly disclosed about the current stable version
-that lacks those changes -- as long as the trunk's `readme.txt` points to the correct stable tag.
-
-    If no stable tag is provided, it is assumed that trunk is stable, but you should specify "trunk" if that's where
-you put the stable version, in order to eliminate any doubt.
+* Support all wallets that support payment protocol
+* Price in your local currency, let customers pay with cryptocurrencies e.g. bitcoins.
+* Shop owners can choose a subset of cryptocurrencies, to allow payments with, depending on the local currency.
+* Customers can choose the currency they would like to pay with.
+* Customers will get an estimate value prior to "place order" on the selected crypto currency.
+* Orders will automatically update status when payment is detected, no manual validation needed.
+* Handles underpaid orders, asking customer the missing amount if necessary.
+* Complete checkout process happens within your website/theme
 
 == Installation ==
 
-This section describes how to install the plugin and get it working.
+This plugin requires WooCommerce and a Payger account. Please make sure you have WooCommerce installed and a Payger account created.
 
-e.g.
+1. Go to [Payger](https://payger.com) and register as a Business.
+2. On Payger Account get your username and password.
+3. Upload `woocommerce-gateway-payger` to the `/wp-content/plugins/` directory
+4. Activate the plugin through the 'Plugins' menu in WordPress
+5. On the Dashboard go to WooCommerce > Settings > Checkout > Payger and do the following
+6. Enable payments through payger
+7. Set your username and password previously given by Payger and save changes.
+8. On the Advanced Options please choose the "Accepted Currencies" for your shop. ( This will be a list of cryptocurrencies based on your shop currency )
 
-1. Upload `wc-payger.php` to the `/wp-content/plugins/` directory
-1. Activate the plugin through the 'Plugins' menu in WordPress
-1. Place `<?php do_action('plugin_name_hook'); ?>` in your templates
+You are now ready to start accepting cryptocurrencies on your website.
 
 == Frequently Asked Questions ==
 
-= A question that someone might have =
+= Do I need to have a Payger account? =
 
-An answer to that question.
+Yes. Before using the plugin you will need to register on [Payger](https://payger.com) as Business. This will
+allow you to generate a Key that would than be needed to configure the plugin and start showing cryptocurrencies as a payment option.
 
-= What about foo bar? =
+= How will underpaid orders work? =
 
-Answer to foo bar dilemma.
+In case the payment is marked as underpaid, a new email with a new address is sent to the buyer so that he can complete the payment.
+The order will still be On-hold until the payment isn't completed.
+
+= Why is my order cancelled after 15 minutes without a payment? =
+
+15 minutes is a Payger limit to finish a payment. Users will get a popup window after "Place Order" with a timer counter for 15 minutes.
+On that popup there will be all the information to make the payment. The buyer must copy the address or scan the QrCode to process the payment.
+If the buyer does not finish the payment within 15 minutes the order is cancelled. It's exactly the same behaviour as if you define 15 minutes as your hold stock time.
+For that time the order will be "pending payment"
+
 
 == Screenshots ==
 
@@ -62,50 +71,3 @@ directory take precedence. For example, `/assets/screenshot-1.png` would win ove
 (or jpg, jpeg, gif).
 2. This is the second screen shot
 
-== Changelog ==
-
-= 1.0 =
-* A change since the previous version.
-* Another change.
-
-= 0.5 =
-* List versions from most recent at top to oldest at bottom.
-
-== Upgrade Notice ==
-
-= 1.0 =
-Upgrade notices describe the reason a user should upgrade.  No more than 300 characters.
-
-= 0.5 =
-This version fixes a security related bug.  Upgrade immediately.
-
-== Arbitrary section ==
-
-You may provide arbitrary sections, in the same format as the ones above.  This may be of use for extremely complicated
-plugins where more information needs to be conveyed that doesn't fit into the categories of "description" or
-"installation."  Arbitrary sections will be shown below the built-in sections outlined above.
-
-== A brief Markdown Example ==
-
-Ordered list:
-
-1. Some feature
-1. Another feature
-1. Something else about the plugin
-
-Unordered list:
-
-* something
-* something else
-* third thing
-
-Here's a link to [WordPress](http://wordpress.org/ "Your favorite software") and one to [Markdown's Syntax Documentation][markdown syntax].
-Titles are optional, naturally.
-
-[markdown syntax]: http://daringfireball.net/projects/markdown/syntax
-            "Markdown is what the parser uses to process much of the readme file"
-
-Markdown uses email style notation for blockquotes and I've been told:
-> Asterisks for *emphasis*. Double it up  for **strong**.
-
-`<?php code(); // goes in backticks ?>`
