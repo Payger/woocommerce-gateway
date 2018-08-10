@@ -62,7 +62,7 @@ if ( $order->get_meta('payger_qrcode', true ) ) {
 } else {
 	$new_order = true;
 	$args      = array(
-		'externalId'        => $order_id . time(),
+		'externalId'        => sprintf( '%03d', $order_id ),
 		'description'       => $description,
 		'inputCurrency'     => $currency,
 		'outputCurrency'    => $selling_currency,
@@ -73,7 +73,7 @@ if ( $order->get_meta('payger_qrcode', true ) ) {
 		'callback'          => array( 'url' => WC()->api_request_url( 'WC_Gateway_Payger' ), 'method' => 'POST' ),
 	);
 
-	$order->add_order_note( __( 'DEBUG CALLBACK ' . WC()->api_request_url( 'WC_Gateway_Payger' ), 'payger' ) );
+	//$order->add_order_note( __( 'DEBUG CALLBACK ' . WC()->api_request_url( 'WC_Gateway_Payger' ), 'payger' ) );
 
 	$response = Payger::post( 'merchants/payments/', $args );
 	$success  = ( 201 === $response['status'] ) ? true : false; //bad response if status different from 201
@@ -83,7 +83,7 @@ if ( $order->get_meta('payger_qrcode', true ) ) {
 		$payment = $response['data']->content->subPayments;
 		$payment = $payment[0];
 
-		$payment_id = $payment->id;
+		$payment_id = $payment->id; //FIXME on modal this is not set
 		$qrCode     = $payment->qrCode;
 		$address    = $payment->address;
 
@@ -115,7 +115,7 @@ if ( $order->get_meta('payger_qrcode', true ) ) {
 
 		// Mark as on-hold (we're awaiting the cheque)
 		//$order->update_status( 'on-hold', __( 'Awaiting Payger payment', 'payger' ) );
-		$order->add_order_note( __( 'DEBUG PAYMENT ID ' . $payment_id, 'payger' ) );
+		//$order->add_order_note( __( 'DEBUG PAYMENT ID ' . $payment_id, 'payger' ) );
 
 		wc_reduce_stock_levels( $order_id );
 
@@ -184,8 +184,7 @@ $html .= '</div>';
 $html .= '	<div class="single-item-order__row selected-currency">
 					<div class="single-item-order--left">
 						<div class="single-item-order--left__currency">
-							<img src="assets/images/currency_logos/btc.svg">
-							Bitcoin
+							' . $currency . '
 						</div>
 					</div>
 
@@ -202,21 +201,8 @@ $html .= '</div>'; //.single-item-order;
 $html .= '<line-items class="expanded">
 				<div class="line-items">
 				<div>
-					<div class="line-items__item">
-						<div class="line-items__item__label" i18n="">' . __('Payment Amount', 'payger') . '</div>
-						<div class="line-items__item__value">' . $input_amount . ' '. $currency .'</div>
-					</div>
-					<div class="line-items__item">
-						<div class="line-items__item__label">
-							<span i18n="">Network Cost</span>
-							<a href="https://help.bitpay.com/paying-with-bitcoin/why-am-i-being-charged-an-additional-network-cost-on-my-bitpay-invoice" target="_blank">';
-$html .= '<img src="' . plugin_dir_url( __FILE__ ) . '../assets/images/invoice-fee-question.svg ">';
-$html .=				'</a>
-						</div>
-						<div class="line-items__item__value">0.000007 '. $currency . '</div>
-					</div>
 					<div class="line-items__item line-items__item--total">
-						<div class="line-items__item__label" i18n="">' . __('Total', 'payger') . '</div>
+						<div class="line-items__item__label" i18n="">' . __('Payment amount', 'payger') . '</div>
 						<div class="line-items__item__value">' . $input_amount . ' '. $currency .'</div>
 					</div>
 				</div>
