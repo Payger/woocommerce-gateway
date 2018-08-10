@@ -61,7 +61,7 @@ if ( $order->get_meta('payger_qrcode', true ) ) {
 } else {
 	$new_order = true;
 	$args      = array(
-		'externalId'        => $order_id . time(),
+		'externalId'        => sprintf( '%03d', $order_id ),
 		'description'       => $description,
 		'inputCurrency'     => $currency,
 		'outputCurrency'    => $selling_currency,
