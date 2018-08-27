@@ -46,7 +46,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		require_once( 'Payger.php' );
 
 		$this->id           = 'payger_gateway';
-		$this->icon         = 'https://payger.com/wp-content/uploads/2018/03/logo_green-350x75.png';
+		$this->icon         = plugin_dir_url( __FILE__ ) . '../assets/icon-payment.png';
 		$this->has_fields   = true;
 		$this->method_title = __( 'Payger', 'payger' );
 		$this->title        = __( 'Payger', 'payger' );
