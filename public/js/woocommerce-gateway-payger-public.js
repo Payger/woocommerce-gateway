@@ -316,7 +316,7 @@
 
 
         if ( null != minutesx && minutesx > 0 ) {
-            //we hate still minutes to process the payment
+            //we have still minutes to process the payment
             counting = true;
         } else {
             //payment expired
@@ -397,7 +397,6 @@
         // check order status each minute
         // cancels if expires, or redirect to thank you page if
         // payment is detected
-
         var y = setInterval(function () {
 
             console.log('check order status for ' + order_id );
@@ -443,7 +442,7 @@
 
 
     /**
-     * Checks wether this is a synchronous or asynchronous payment
+     * Checks weather this is a synchronous or asynchronous payment
      * Verifies if there is a class only present on the modal
      * @returns {boolean}
      */

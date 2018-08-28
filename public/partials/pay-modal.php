@@ -19,49 +19,34 @@ if( ! $order_id ) {
 	return; //we need order id to have proper date on modal
 }
 
-global $woocommerce;
 $session_data = WC()->session->get( 'crypto_meta' );
 
-if( empty( $session_data ) ) {
-	error_log('EMPTY SESSION DATA');
+if ( empty( $session_data ) ) {
 	return;
 }
 
-
-$order = new WC_Order( $order_id );
-
-$name  = $order->get_billing_first_name() . ' ' . $order->get_billing_first_name();
-$email = $order->get_billing_email();
-$items = $order->get_items();
-
-// Get list of items to buy to have a proper description
-$cart_items = array();
-if( ! empty( $items ) ) {
-	foreach ( $items as $item ) {
-		$cart_items[] = $item->get_name();
-	}
-}
-$cart_items = implode( ',', $cart_items );
-
-//Collect data for request
+$order            = new WC_Order( $order_id );
+$name             = $order->get_billing_first_name() . ' ' . $order->get_billing_first_name();
+$email            = $order->get_billing_email();
+$items            = $order->get_items();
+$cart_items       = Woocommerce_Payger_Gateway::get_cart_items_names( $order );
 $site_name        = get_bloginfo( 'name' );
 $currency         = $session_data['currency'];
 $rate             = $session_data['rate'];
-$amount           = $order->get_total();
 $description      = __( 'Payment for: ', 'payger' ) . $cart_items;
 $selling_currency = get_option('woocommerce_currency');
 
-
-$success   = false;
-
 //we already have this data so we are not creating a new payment
 if ( $order->get_meta('payger_qrcode', true ) ) {
+
 	$qrCode       = $order->get_meta( 'payger_qrcode', true );
 	$address      = $order->get_meta( 'payger_address', true );
 	$input_amount = $order->get_meta( 'payger_ammount', true );
+
 } else {
-	$new_order = true;
-	$args      = array(
+
+	$amount = $order->get_total();
+	$args   = array(
 		'externalId'        => sprintf( '%03d', $order_id ),
 		'description'       => $description,
 		'inputCurrency'     => $currency,
@@ -71,75 +56,25 @@ if ( $order->get_meta('payger_qrcode', true ) ) {
 		'buyerName'         => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
 		'buyerEmailAddress' => $order->get_billing_email(),
 		'callback'          => array( 'url' => WC()->api_request_url( 'WC_Gateway_Payger' ), 'method' => 'POST' ),
+		'ipAddress'         => $_SERVER['REMOTE_ADDR'],
+		'metadata'          => array('meta1'=>'value1'),
 	);
 
-	//$order->add_order_note( __( 'DEBUG CALLBACK ' . WC()->api_request_url( 'WC_Gateway_Payger' ), 'payger' ) );
-	error_log(print_r($args, true));
 	$response = Payger::post( 'merchants/payments/', $args );
-	$success  = ( 201 === $response['status'] ) ? true : false; //bad response if status different from 201
 
-	if ( $success ) {
+	$res = Woocommerce_Payger_Gateway::handle_payment_response( $response, $order_id, $currency );
 
-		$payment = $response['data']->content->subPayments;
-		$payment = $payment[0];
-
-		$payment_id = $payment->id; //FIXME on modal this is not set
-		$qrCode     = $payment->qrCode;
-		$address    = $payment->address;
-
-		$data        = base64_decode( $qrCode->content );
-		$uploads     = wp_upload_dir();
-		$upload_path = $uploads['basedir'];
-		$filename    = '/payger_tmp/' . $order_id . '.png';
-
-		// create temporary directory if does not exists
-		if ( ! file_exists( $upload_path . '/payger_tmp' ) ) {
-			mkdir( $upload_path . '/payger_tmp' );
-		}
-
-		//always update file so that if qrcode changes for this
-		//payment the code is still valid
-		file_put_contents( $upload_path . $filename, $data );
-
-		$qrcode_img = $uploads['baseurl'] . $filename;
-
-		$input_amount = $payment->inputAmount;
-
-		//save meta to possible queries and to show information on thank you page or emails
-		$order->add_meta_data( 'payger_currency', $asset );
-		$order->add_meta_data( 'payger_ammount', $input_amount );
-		$order->add_meta_data( 'payger_qrcode', $qrCode );
-		$order->add_meta_data( 'payger_qrcode_image', $qrcode_img ); //stores qrcode url so that email can use this.
-		$order->add_meta_data( 'payger_payment_id', $payment_id );
-		$order->add_meta_data( 'payger_address', $address );
-
-		// Mark as on-hold (we're awaiting the cheque)
-		//$order->update_status( 'on-hold', __( 'Awaiting Payger payment', 'payger' ) );
-		//$order->add_order_note( __( 'DEBUG PAYMENT ID ' . $payment_id, 'payger' ) );
-
-		wc_reduce_stock_levels( $order_id );
-
-		$order->save();
-
-		// Remove cart
-		$woocommerce->cart->empty_cart();
-
-		//schedule event to check this payment status
-		wp_schedule_event( time(), 'minute', 'payger_check_payment', array(
-			'payment_id' => $payment_id,
-			'order_id'   => $order_id
-		) );
-	} else {
-		error_log('-ERROR-');
-		error_log(print_r($response, true));
-		$error_message = $response['data']->error->message;
-		$error_message = apply_filters( 'payger_payment_error_message', $error_message );
-		wc_add_notice( __('Payment error: ', 'payger') . $error_message, 'error' );
+	if ( ! $res ) {
+		return; //exit modal if payment api call fails
 	}
+	$qrcode_image = $res['image'];
+	$input_amount = $res['amount'];
+	$qrCode       = $res['code'];
+	$address      = $res['address'];
 }
 
 //Get applicable fee
-$response = Payger::post( 'merchants/fees/' );
+$response = Payger::get( 'merchants/fees/' );
 error_log('FEES RESPONSE');
 error_log( print_r( $response, true ) );
 
@@ -155,7 +90,7 @@ $html .= '<img class="header__icon__img" src="' . plugin_dir_url( __FILE__ ) . '
 $html .= '</div>';
 $html .= '</div>';
 $html .= '<div class="timer-row">';
-$html .= '<div class="timer-row__progress-bar" style="width: 4.16533%;"></div>';
+//$html .= '<div class="timer-row__progress-bar" style="width: 4.16533%;"></div>';
 $html .= '<div class="timer-row__spinner">';
 $html .= '<bp-spinner>';
 $html .= '<svg xml:space="preserve" style="enable-background:new 0 0 50 50;" version="1.1" viewBox="0 0 50 50" x="0px" xmlns="http://www.w3.org/2000/svg" y="0px">';
@@ -184,7 +119,7 @@ $html .= '<div class="single-item-order--left__name">';
 $html .=  $site_name;
 $html .= '</div>';
 $html .= '<div class="single-item-order--left__description">';
-$html .= __( 'Payment for: ', 'payger' ) . $description;
+$html .= $description;
 $html .= '</div>';
 $html .= '</div>';
 $html .= '</div>';
@@ -208,8 +143,18 @@ $html .= '</div>'; //.single-item-order;
 $html .= '<line-items class="expanded">
 				<div class="line-items">
 				<div>
+					<div class="line-items__item">
+						<div class="line-items__item__label" i18n="">' . __('Payment Amount', 'payger') . '</div>
+						<div class="line-items__item__value">' . $input_amount . ' '. $currency .'</div>
+					</div>
+					<div class="line-items__item">
+						<div class="line-items__item__label">
+							<span i18n="">Network Cost</span>
+						</div>
+						<div class="line-items__item__value">0.000007 '. $currency . '</div>
+					</div>
 					<div class="line-items__item line-items__item--total">
-						<div class="line-items__item__label" i18n="">' . __('Payment amount', 'payger') . '</div>
+						<div class="line-items__item__label" i18n="">' . __('Total', 'payger') . '</div>
 						<div class="line-items__item__value">' . $input_amount . ' '. $currency .'</div>
 					</div>
 				</div>

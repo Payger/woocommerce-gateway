@@ -305,7 +305,9 @@ class Woocommerce_Payger_Admin {
 	 */
 	public function check_payment( $payment_id, $order_id ) {
 
-	//	error_log('I AM CHECKING PAYMENT TRIGGERD BY CRON FOR '. $order_id);
+		if( ! $payment_id ) {
+			return;
+		}
 
 		$response = Payger::get( 'merchants/payments/' . $payment_id );
 
@@ -383,21 +385,7 @@ class Woocommerce_Payger_Admin {
 					$address = $payment->address;
 
 					//Build qrCode image
-					$data        = base64_decode( $qrCode->content );
-					$uploads     = wp_upload_dir();
-					$upload_path = $uploads['basedir'];
-					$filename    = '/payger_tmp/' . $order_id . '.png';
-
-					// create temporary directory if does not exists
-					if ( ! file_exists( $upload_path . '/payger_tmp' ) ) {
-						mkdir( $upload_path . '/payger_tmp' );
-					}
-
-					//always update file so that if qrcode changes for this
-					//payment the code is still valid
-					file_put_contents( $upload_path . $filename, $data );
-
-					$qrcode_image = $uploads['baseurl'] . $filename;
+					$qrcode_image = $this->payger->generate_qrcode_image( $order_id, $payment );
 
 					//update store values for qrcode
 					$order->update_meta_data( 'payger_ammount', $payment->inputAmount );
@@ -481,21 +469,7 @@ class Woocommerce_Payger_Admin {
 					$address  = $payment->address;
 
 					//Build qrCode image
-					$data        = base64_decode( $qrCode->content );
-					$uploads     = wp_upload_dir();
-					$upload_path = $uploads['basedir'];
-					$filename    = '/payger_tmp/' . $order_id . '.png';
-
-					// create temporary directory if does not exists
-					if ( ! file_exists( $upload_path . '/payger_tmp' ) ) {
-						mkdir( $upload_path . '/payger_tmp' );
-					}
-
-					//always update file so that if qrcode changes for this
-					//payment the code is still valid
-					file_put_contents( $upload_path . $filename, $data );
-
-					$qrcode_image = $uploads['baseurl'] . $filename;
+					$qrcode_image = $this->payger->generate_qrcode_image( $order_id, $payment );
 
 
 					//update store values for qrcode
