@@ -28,7 +28,7 @@
 
 
 
-    // choose cryptocurrency on my-account trigger pay
+    // choose crypto currency on my-account trigger pay
     $('#payger_gateway_coin').change(function () {
         $('#payger_convertion').addClass('hide');
         $('.warning').addClass('hide');
@@ -41,7 +41,7 @@
     });
 
     //needed since payment options are added to the DOM after the document ready
-    //choose cryptocurrency on checkout page
+    //choose crypto currency on checkout page
     jQuery(document).ajaxComplete(function () {
 
         //Change currency

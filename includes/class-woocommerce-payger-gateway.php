@@ -50,7 +50,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		$this->has_fields   = true;
 		$this->method_title = __( 'Payger', 'payger' );
 		$this->title        = __( 'Payger', 'payger' );
-		$this->description  = __( 'Pay with cryptocurrency (powered by Payger)', 'payger' );
+		$this->description  = __( 'Pay with crypto currency (powered by Payger)', 'payger' );
 
 
 		$key    = $this->get_option( 'key' );
@@ -155,7 +155,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			'description' => array(
 				'title'       => __( 'Description', 'payger' ),
 				'type'        => 'text',
-				'default'     => __( 'Pay with cryptocurrency provided by Payger', 'payger' ),
+				'default'     => __( 'Pay with crypto currency provided by Payger', 'payger' ),
 				'description' => __( 'This controls the description which the user sees during checkout.', 'payger' ),
 				'desc_tip'    => true,
 			),
@@ -180,7 +180,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 				'title'       => __( 'Accepted Currencies', 'payger' ),
 				'type'        => 'multiselect',
 				'class'       => 'wc-enhanced-select',
-				'description' => __( 'Choose which are the currencies you will allow users to pay with. This depends on your shop currency choosen on Woocommerce General Options. If no options are available it means your shop currency can\'t be converted to any cryptocurrency, please choose a different one you want to use Payger. ', 'payger' ),
+				'description' => __( 'Choose which are the currencies you will allow users to pay with. This depends on your shop currency choosen on Woocommerce General Options. If no options are available it means your shop currency can\'t be converted to any crypto currency, please choose a different one you want to use Payger. ', 'payger' ),
 				'default'     => 'bitcoin',
 				'desc_tip'    => true,
 				'options'     => $this->get_accepted_currencies_options(),
@@ -264,7 +264,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 				__( 'corresponding to a rate of', 'payger' ), //9
 				__( 'Please confirm you want to proceed with your order.', 'payger' ), //10
 				esc_attr( $order_id ), //11
-				esc_html( __( '*This is an estimate value. Due to cryptocurrency volatility this rate may change. Please take this into consideration.', 'payger' ) ) //12
+				esc_html( __( '*This is an estimate value. Due to crypto currency volatility this rate may change. Please take this into consideration.', 'payger' ) ) //12
 			);
 		}
 
@@ -446,7 +446,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 	}
 
 	/**
-	 * Given a cryptocurrency get it's exchange rates
+	 * Given a crypto currency get it's exchange rates
 	 *
 	 * @since 1.0.0
 	 * @author Ana Aires ( ana@widgilabs.com )
@@ -478,7 +478,6 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		if ( $success ) {
 			$result    = $response['data']->content->rates;
 			$result    = $result[0]; //I am interested in a single quote
-			$limit     = $result->limit;
 			$precision = $result->precision;
 			$rate      = round( $result->rate, $precision );
 			$amount    = round( $result->amount, $precision );
@@ -489,7 +488,6 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 				'currency'  => $choosen_crypto,
 				'rate'      => $rate,
 				'amount'    => $amount,
-				'limit'     => $limit,
 				'precision' => $precision //maybe needed but we are already setting the correct precision
 			) );
 			return array( 'rate' => $rate, 'amount' => $amount );

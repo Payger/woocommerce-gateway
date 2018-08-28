@@ -163,7 +163,7 @@ class Woocommerce_Payger_Admin {
 	}
 
 	/**
-	 * Given a cryptocurrency get it's exchange rates
+	 * Given a crypto currency get it's exchange rates
 	 * This is used by the ajax call
 	 * @since 1.0.0
 	 * @author Ana Aires ( ana@widgilabs.com )
@@ -171,7 +171,7 @@ class Woocommerce_Payger_Admin {
 	public function get_quote() {
 
 		if ( ! isset( $_GET['to'] ) ) {
-			$error_message = apply_filters( 'payger_no_currency_error_message', __('You must choose a cryptocurrency first.', 'payger' ) );
+			$error_message = apply_filters( 'payger_no_currency_error_message', __('You must choose a crypto currency first.', 'payger' ) );
 			wc_add_notice( __('Payment error: ', 'payger') . $error_message, 'error' );
 			wp_send_json_error();
 		}
@@ -305,9 +305,10 @@ class Woocommerce_Payger_Admin {
 	 */
 	public function check_payment( $payment_id, $order_id ) {
 
-		error_log('I AM CHECKING PAYMENT TRIGGERD BY CRON FOR '. $order_id);
+	//	error_log('I AM CHECKING PAYMENT TRIGGERD BY CRON FOR '. $order_id);
 
 		$response = Payger::get( 'merchants/payments/' . $payment_id );
+
 		$status   = $response['data']->content->status;
 		$order    = new WC_Order( $order_id );
 		$total    = $order->get_total();
@@ -315,7 +316,7 @@ class Woocommerce_Payger_Admin {
 		$input_currency  = $order->get_meta( 'payger_currency' );
 		$output_currency = get_option('woocommerce_currency');
 
-		error_log('PAYMENT STATUS ' .$status );
+	//	error_log('PAYMENT STATUS ' .$status );
 
 		switch( $status ) {
 			case 'PENDING' :

@@ -164,6 +164,8 @@ Class Payger {
 		$url = str_replace( '{{ ENV }}', 'test', $url ); //TODO change this dynamically
 		$url = str_replace( '{{ CLASS }}', $endpoint, $url );
 
+		error_log('URL- '.$url);
+
 		$curl = curl_init();
 
 		switch( $method ) {

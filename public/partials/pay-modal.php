@@ -74,7 +74,7 @@ if ( $order->get_meta('payger_qrcode', true ) ) {
 	);
 
 	//$order->add_order_note( __( 'DEBUG CALLBACK ' . WC()->api_request_url( 'WC_Gateway_Payger' ), 'payger' ) );
-
+	error_log(print_r($args, true));
 	$response = Payger::post( 'merchants/payments/', $args );
 	$success  = ( 201 === $response['status'] ) ? true : false; //bad response if status different from 201
 
@@ -130,11 +130,18 @@ if ( $order->get_meta('payger_qrcode', true ) ) {
 			'order_id'   => $order_id
 		) );
 	} else {
+		error_log('-ERROR-');
+		error_log(print_r($response, true));
 		$error_message = $response['data']->error->message;
 		$error_message = apply_filters( 'payger_payment_error_message', $error_message );
 		wc_add_notice( __('Payment error: ', 'payger') . $error_message, 'error' );
 	}
 }
+
+//Get applicable fee
+$response = Payger::post( 'merchants/fees/' );
+error_log('FEES RESPONSE');
+error_log( print_r( $response, true ) );
 
 $html  = '<input type="hidden" class="order_id" value="' . $order_id . '">';
 $html .= '<p><a id="modal" href="#ex1" rel="modal:open" class="hide">Open Modal</a></p>';

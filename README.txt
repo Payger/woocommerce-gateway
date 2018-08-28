@@ -1,6 +1,6 @@
 === Plugin Name ===
 Contributors: payger, aaires, widgilabs
-Tags: woocommerce, payger, payment gateway, payment, cryptocurrency, bitcoin
+Tags: woocommerce, payger, payment gateway, payment, crypto currency, bitcoin
 Requires at least: 3.0.1
 Tested up to: 4.9.6
 Stable tag: 4.3
@@ -11,19 +11,19 @@ Payger Woocommerce Gateway
 
 == Description ==
 
-Extends Woocommerce Gateways to accept payments with cryptocurrencies through Payger.
+Extends Woocommerce Gateways to accept payments with crypto currencies through Payger.
 
 Payger Woocommerce Gateway is a FREE WordPress plugin by [Payger](https://payger.com).
-Start accepting Bitcoins, Ethereum or other cryptocurrencies on Your Woocommerce online store.
+Start accepting Bitcoins, Ethereum or other crypto currencies on Your Woocommerce online store.
 Increase your sales as you add all major altcoins as payment option for your customers.
 
 Key Features:
 
 * Support all wallets that support payment protocol
-* Price in your local currency, let customers pay with cryptocurrencies e.g. bitcoins.
-* Shop owners can choose a subset of cryptocurrencies, to allow payments with, depending on the local currency.
+* Price in your local currency, let customers pay with crypto currencies e.g. bitcoins.
+* Shop owners can choose a subset of crypto currencies, to allow payments with, depending on the local currency.
 * Customers can choose the currency they would like to pay with.
-* Customers will get an estimate value prior to "place order" on the selected cryptocurrency.
+* Customers will get an estimate value prior to "place order" on the selected crypto currency.
 * Orders will automatically update status when payment is detected, no manual validation needed.
 * Handles underpaid orders, asking customer the missing amount if necessary.
 * Complete checkout process happens within your website/theme
@@ -39,16 +39,16 @@ This plugin requires WooCommerce and a Payger account. Please make sure you have
 5. On the Dashboard go to WooCommerce > Settings > Checkout > Payger and do the following:
 6. Enable payments through payger
 7. Set your username and password previously given by Payger and save changes.
-8. On the Advanced Options please choose the "Accepted Currencies" for your shop. ( This will be a list of cryptocurrencies based on your shop currency )
+8. On the Advanced Options please choose the "Accepted Currencies" for your shop. ( This will be a list of crypto currencies based on your shop currency )
 
-You are now ready to start accepting cryptocurrencies on your website.
+You are now ready to start accepting crypto currencies on your website.
 
 == Frequently Asked Questions ==
 
 = Do I need to have a Payger account? =
 
 Yes. Before using the plugin you will need to register on [Payger](https://payger.com) as Business. This will
-allow you to generate a Key and Secret pair that would than be needed to configure the plugin and start showing cryptocurrencies as a payment option.
+allow you to generate a Key and Secret pair that would than be needed to configure the plugin and start showing crypto currencies as a payment option.
 
 = How will underpaid orders work? =
 
@@ -73,6 +73,6 @@ The buyer will need to select the products again and go to cart and checkout pag
 2. API Key successfully created. Username is you API Key and Password is your API secret.
 3. Payger payment gateway settings tab under WooCommerce Settings
 4. Checkout page select currency
-5. Checkout page currency rate information for the selected cryptocurrency
+5. Checkout page currency rate information for the selected crypto currency
 6. Popup with address to pay and payment information
 7. Popup when payment gets expired and order canceled
