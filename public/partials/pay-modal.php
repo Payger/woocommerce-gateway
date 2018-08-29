@@ -33,8 +33,10 @@ $cart_items       = Woocommerce_Payger_Gateway::get_cart_items_names( $order );
 $site_name        = get_bloginfo( 'name' );
 $currency         = $session_data['currency'];
 $rate             = $session_data['rate'];
+$precision        = $session_data['precision'];
 $description      = __( 'Payment for: ', 'payger' ) . $cart_items;
 $selling_currency = get_option('woocommerce_currency');
+$amount           = $order->get_total();
 
 //we already have this data so we are not creating a new payment
 if ( $order->get_meta('payger_qrcode', true ) ) {
@@ -44,8 +46,6 @@ if ( $order->get_meta('payger_qrcode', true ) ) {
 	$input_amount = $order->get_meta( 'payger_ammount', true );
 
 } else {
-
-	$amount = $order->get_total();
 	$args   = array(
 		'externalId'        => sprintf( '%03d', $order_id ),
 		'description'       => $description,
@@ -74,7 +74,21 @@ if ( $order->get_meta('payger_qrcode', true ) ) {
 }
 
 //Get applicable fee
-$response = Payger::get( 'merchants/fees/' );
+$fee      = '';
+$args     = array(
+	'inputCurrency'  => $currency,
+	'outputAmount'   => $amount,
+	'outputCurrency' => $selling_currency
+);
+print_r( $args);
+$response = Payger::post( 'merchants/fees/', $args );
+$success  = ( 200 === $response['status'] ) ? true : false; //bad response if status different from 201
+if( $success )
+{
+	$fee = $response['data']->content->fee;
+	$fee = round( $fee, $precision );
+}
+
 error_log('FEES RESPONSE');
 error_log( print_r( $response, true ) );
 
@@ -151,7 +165,7 @@ $html .= '<line-items class="expanded">
 						<div class="line-items__item__label">
 							<span i18n="">Network Cost</span>
 						</div>
-						<div class="line-items__item__value">0.000007 '. $currency . '</div>
+						<div class="line-items__item__value">'. $fee . ' ' . $currency . '</div>
 					</div>
 					<div class="line-items__item line-items__item--total">
 						<div class="line-items__item__label" i18n="">' . __('Total', 'payger') . '</div>

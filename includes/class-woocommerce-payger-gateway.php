@@ -456,9 +456,12 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		$selling_currency = get_option('woocommerce_currency');
 
-		$args = array('from' => $selling_currency, 'amount' => 10 ); //we need to pass an amoun it's a bridge requirement
+		//we need to pass an amount it's a bridge requirement
+		$args = array('from' => $selling_currency, 'amount' => 10 );
 
-		$response = Payger::get( 'merchants/exchange-rates', $args );
+		$args = array( 'productCurrency' => $selling_currency );
+
+		$response = Payger::get( 'merchants/currencies', $args );
 
 		$currencies = array();
 
@@ -466,12 +469,13 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			return $currencies;
 		}
 
-		if ( $rates = $response['data']->content->rates ) {
+		if ( $rates = $response['data']->content->currencies ) {
+
 			foreach ( $rates as $currency ) {
-				$currencies[ $currency->currency ] = ucfirst( $currency->currency );
+				$currencies[ $currency->name ] = ( isset($currency->longName ) ) ? ucfirst( $currency->longName ) : $currency->name;
 			}
 		}
-		update_option('payger_possible_currencies', $currencies );
+		update_option('payger_possible_currencies', $rates );
 
 		return $currencies;
 	}

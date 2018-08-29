@@ -67,8 +67,6 @@ class Woocommerce_Payger_Admin {
 	 */
 	public function enqueue_styles() {
 
-		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/woocommerce-gateway-payger-admin.css', array(), $this->version, 'all' );
-
 	}
 
 	/**
@@ -77,9 +75,7 @@ class Woocommerce_Payger_Admin {
 	 * @since    1.0.0
 	 */
 	public function enqueue_scripts() {
-
-		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/woocommerce-gateway-payger-admin.js', array( 'jquery' ), $this->version, false );
-
+		
 	}
 
 	/**

@@ -167,23 +167,23 @@ class Woocommerce_Payger {
 
 		$plugin_admin = new Woocommerce_Payger_Admin( $this->get_plugin_name(), $this->get_version() );
 
-		add_action( 'admin_enqueue_scripts', array( $plugin_admin, 'enqueue_styles' ) );
-		add_action( 'admin_enqueue_scripts', array( $plugin_admin, 'enqueue_scripts' ) );
+		add_action( 'admin_enqueue_scripts',        array( $plugin_admin, 'enqueue_styles' ) );
+		add_action( 'admin_enqueue_scripts',        array( $plugin_admin, 'enqueue_scripts' ) );
 
 		add_action( 'plugins_loaded',               array( $plugin_admin, 'init_gateway') );
 		add_filter( 'woocommerce_payment_gateways', array( $plugin_admin, 'add_payger_gateway_class') );
 
-		add_filter( 'cron_schedules', array( $plugin_admin, 'payger_intervals') );
-		add_action( 'payger_check_payment', array( $plugin_admin, 'check_payment' ), 10, 2 );
+		add_filter( 'cron_schedules',               array( $plugin_admin, 'payger_intervals') );
+		add_action( 'payger_check_payment',         array( $plugin_admin, 'check_payment' ), 10, 2 );
 
 
-		add_action( 'wp_ajax_payger_get_quote', array( $plugin_admin, 'get_quote' ) );
+		add_action( 'wp_ajax_payger_get_quote',        array( $plugin_admin, 'get_quote' ) );
 		add_action( 'wp_ajax_nopriv_payger_get_quote', array( $plugin_admin, 'get_quote' ) );
 
-		add_action( 'wp_ajax_check_order_status', array( $plugin_admin, 'check_order_status' ) );
+		add_action( 'wp_ajax_check_order_status',        array( $plugin_admin, 'check_order_status' ) );
 		add_action( 'wp_ajax_nopriv_check_order_status', array( $plugin_admin, 'check_order_status' ) );
 
-		add_action( 'wp_ajax_cancel_expired_order', array( $plugin_admin, 'cancel_expired_order' ) );
+		add_action( 'wp_ajax_cancel_expired_order',        array( $plugin_admin, 'cancel_expired_order' ) );
 		add_action( 'wp_ajax_nopriv_cancel_expired_order', array( $plugin_admin, 'cancel_expired_order' ) );
 
 		add_action( 'woocommerce_email_before_order_table', array( $plugin_admin, 'update_email_instructions' ), 10, 3 );
