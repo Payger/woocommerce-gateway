@@ -223,12 +223,16 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		$options          = '';
 
 		$possible_currencies = get_option('payger_possible_currencies', true );
+		
 		if ( $currency_options && ! empty( $currency_options ) ) {
 			foreach ( $currency_options as $option ) {
 
+				$currency  = $possible_currencies[ $option ];
+				$long_name = ( isset( $currency->longName ) ) ? ucfirst( $currency->longName ) : $currency->name;
+
 				$options .= sprintf( '<option value="%1$s">%2$s</option>',
 					$option,
-					$possible_currencies[$option] );
+					$long_name );
 			}
 		}
 
@@ -463,21 +467,26 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		$response = Payger::get( 'merchants/currencies', $args );
 
-		$currencies = array();
+		$currencies_options  = array();
+		$accepted_currencies = array();
+
 
 		if ( 200 !== $response['status'] ) {
-			return $currencies;
+			return $currencies_options;
 		}
 
 		if ( $rates = $response['data']->content->currencies ) {
 
 			foreach ( $rates as $currency ) {
-				$currencies[ $currency->name ] = ( isset($currency->longName ) ) ? ucfirst( $currency->longName ) : $currency->name;
+				$long_name = ( isset($currency->longName ) ) ? ucfirst( $currency->longName ) : $currency->name;
+				$currencies_options[ $currency->name ] = $long_name;
+				$accepted_currencies[ $currency->name ] = $currency;
 			}
 		}
-		update_option('payger_possible_currencies', $rates );
 
-		return $currencies;
+		update_option('payger_possible_currencies', $accepted_currencies );
+
+		return $currencies_options;
 	}
 
 	/**
