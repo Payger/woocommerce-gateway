@@ -422,6 +422,12 @@ class Woocommerce_Payger_Admin {
 			case 'EXPIRED' :
 				error_log('EXPIRED ');
 
+				$order_status = $order->get_status();
+				if ( 'cancelled' != $order_status ) {
+					wp_clear_scheduled_hook( 'payger_check_payment', array( 'payment_id' => $payment_id, 'order_id' => $order_id ) );
+					break; //order was already canceled do nothing
+				}
+
 				$max = $this->payger->get_option( 'max_expired' );
 
 				$expired = $order->get_meta( 'payger_expired', true );

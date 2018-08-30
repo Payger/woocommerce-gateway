@@ -160,7 +160,7 @@ Class Payger {
 
 	public static function exec($method, $endpoint, $obj = array()) {
 
-		$url = 'https://merchant-api-{{ ENV }}.payger.com/api/v1/{{ CLASS }}'; //FIXME Payger::getUrl()
+		$url = 'https://merchant-api-{{ ENV }}.payger.com/api/v1/{{ CLASS }}';
 		$url = str_replace( '{{ ENV }}', 'test', $url ); //TODO change this dynamically
 		$url = str_replace( '{{ CLASS }}', $endpoint, $url );
 		$curl = curl_init();
