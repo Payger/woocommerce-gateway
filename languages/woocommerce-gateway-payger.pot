@@ -5,7 +5,7 @@ msgstr ""
 "Project-Id-Version: Woocommerce Gateway Payger 1.0.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/woocommerce-"
 "gateway-payger\n"
-"POT-Creation-Date: 2018-08-30 13:00:42+00:00\n"
+"POT-Creation-Date: 2018-08-30 13:24:56+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -231,7 +231,7 @@ msgid "WooCommerce Gateway Payger requires WooCommerce to be activated"
 msgstr ""
 
 #: public/class-wc-email-customer-underpaid-order.php:28
-msgid "Order uderpaid"
+msgid "Order underpaid"
 msgstr ""
 
 #: public/class-wc-email-customer-underpaid-order.php:29
@@ -260,8 +260,8 @@ msgstr ""
 
 #: public/emails/plain/customer-underpaid-order.php:25
 msgid ""
-"sYour order is on-hold until we confirm payment has been received. Your "
-"order details are shown below for your reference:"
+"Your order is on-hold until we confirm payment has been received. Your order "
+"details are shown below for your reference:"
 msgstr ""
 
 #: public/partials/customer-underpaid-order.php:28

@@ -2,13 +2,21 @@
 # This file is distributed under the same license as the Payger package.
 msgid ""
 msgstr ""
-"PO-Revision-Date: 2018-08-30 13:23:11+0000\n"
+"PO-Revision-Date: 2018-08-30 13:26:03+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: GlotPress/1.0-alpha-1000\n"
 "Project-Id-Version: Payger\n"
+
+#: public/class-wc-email-customer-underpaid-order.php:28
+msgid "Order underpaid"
+msgstr "Encomenda parcialmente paga"
+
+#: public/emails/plain/customer-underpaid-order.php:25
+msgid "Your order is on-hold until we confirm payment has been received. Your order details are shown below for your reference:"
+msgstr "A sua encomenda aguarda pagamento até confirmação de que o montante foi recebido. Os dados da sua encomenda estão visíveis abaixo para sua referência:"
 
 #: admin/class-woocommerce-payger-admin.php:117
 msgid "Every Minute"
@@ -216,10 +224,6 @@ msgstr "A aguardar pagamento"
 msgid "WooCommerce Gateway Payger requires WooCommerce to be activated"
 msgstr "WooCommerce Gateway Payger depende do WooCommerce estar activo"
 
-#: public/class-wc-email-customer-underpaid-order.php:28
-msgid "Order uderpaid"
-msgstr "Encomenda paga parcialmente"
-
 #: public/class-wc-email-customer-underpaid-order.php:29
 msgid "This is an order notification sent to customers containing order details after an order is underpaid."
 msgstr "Esta notificação é enviada aos clientes contendo detalhes da encomenda após uma encomenda ser parcialmente paga."
@@ -239,10 +243,6 @@ msgstr "Copiar"
 #: public/emails/customer-underpaid-order.php:28
 msgid "Your order is on-hold until we confirm the missing payment has been received. Your order details are shown below for your reference:"
 msgstr "A sua encomenda aguarda pagamento até confirmação de que o montante em falta foi recebido. Os detalhes da sua encomenda estão visíveis abaixo para sua referência:"
-
-#: public/emails/plain/customer-underpaid-order.php:25
-msgid "sYour order is on-hold until we confirm payment has been received. Your order details are shown below for your reference:"
-msgstr "A sua encomenda aguarda pagamento até confirmação de que o montante foi recebido. Os detalhes da sua encomenda estão visíveis abaixo para sua referência:"
 
 #: public/partials/customer-underpaid-order.php:28
 msgid "Your order is underpaid and will remain on-hold until we confirm the complete payment has been received. Your order details and instructions for complete the payment are shown below for your reference:"
