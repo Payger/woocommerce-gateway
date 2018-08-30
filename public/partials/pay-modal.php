@@ -159,7 +159,7 @@ $html .= '<line-items class="expanded">
 				<div>
 					<div class="line-items__item">
 						<div class="line-items__item__label" i18n="">' . __('Payment Amount', 'payger') . '</div>
-						<div class="line-items__item__value">' . $input_amount - $fee . ' '. $currency .'</div>
+						<div class="line-items__item__value">' . $input_amount . ' '. $currency .'</div>
 					</div>
 					<div class="line-items__item">
 						<div class="line-items__item__label">
