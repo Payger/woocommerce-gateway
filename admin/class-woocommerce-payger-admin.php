@@ -314,7 +314,7 @@ class Woocommerce_Payger_Admin {
 		$input_currency  = $order->get_meta( 'payger_currency' );
 		$output_currency = get_option('woocommerce_currency');
 
-	//	error_log('PAYMENT STATUS ' .$status );
+		error_log('PAYMENT STATUS FOR ORDER ' .$order_id . ' ' .$status );
 
 		switch( $status ) {
 			case 'PENDING' :

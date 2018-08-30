@@ -80,7 +80,7 @@ $args     = array(
 	'outputAmount'   => $amount,
 	'outputCurrency' => $selling_currency
 );
-print_r( $args);
+
 $response = Payger::post( 'merchants/fees/', $args );
 $success  = ( 200 === $response['status'] ) ? true : false; //bad response if status different from 201
 if( $success )
@@ -89,8 +89,6 @@ if( $success )
 	$fee = round( $fee, $precision );
 }
 
-error_log('FEES RESPONSE');
-error_log( print_r( $response, true ) );
 
 $html  = '<input type="hidden" class="order_id" value="' . $order_id . '">';
 $html .= '<p><a id="modal" href="#ex1" rel="modal:open" class="hide">'. __('Open Modal', 'payger') .'</a></p>';
