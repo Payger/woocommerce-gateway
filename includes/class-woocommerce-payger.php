@@ -183,9 +183,6 @@ class Woocommerce_Payger {
 		add_action( 'wp_ajax_check_order_status',        array( $plugin_admin, 'check_order_status' ) );
 		add_action( 'wp_ajax_nopriv_check_order_status', array( $plugin_admin, 'check_order_status' ) );
 
-		add_action( 'wp_ajax_cancel_expired_order',        array( $plugin_admin, 'cancel_expired_order' ) );
-		add_action( 'wp_ajax_nopriv_cancel_expired_order', array( $plugin_admin, 'cancel_expired_order' ) );
-
 		add_action( 'woocommerce_email_before_order_table', array( $plugin_admin, 'update_email_instructions' ), 10, 3 );
 
 		//FIXME pode não estar inicializado quando o callback corre...

@@ -423,77 +423,94 @@ class Woocommerce_Payger_Admin {
 			case 'EXPIRED' :
 				error_log('EXPIRED');
 
-				$order_status = $order->get_status();
-				if ( 'cancelled' == $order_status ) {
-					wp_clear_scheduled_hook( 'payger_check_payment', array( 'payment_id' => $payment_id, 'order_id' => $order_id ) );
-					break; //order was already canceled do nothing
-				}
+				//SCENARIO 2
+				if ( 'sync' === $this->get_option( 'payment_type' ) ) {
 
-				$max = $this->payger->get_option( 'max_expired' );
+					$order->update_status( 'cancelled', __( 'Unpaid order cancelled - time limit reached.', 'payger' ) );
+					//cancel payment
+					$this->payger->cancel_payment( $order_id );
+					wp_clear_scheduled_hook( 'payger_check_payment', array(
+						'payment_id' => $payment_id,
+						'order_id'   => $order_id
+					) );
+					break;
 
-				$expired = $order->get_meta( 'payger_expired', true );
-				if ( $max == $expired ) {
-					$order->update_status( 'cancelled', __( 'Payger Payment Expired '. $max . ' times', 'payger' ) );
-					//clear hook
-					wp_clear_scheduled_hook( 'payger_check_payment', array( 'payment_id' => $payment_id, 'order_id' => $order_id ) );
+				} else {
+					//SCENARIO 1
+					$max = $this->payger->get_option( 'max_expired' );
+
+					$expired = $order->get_meta( 'payger_expired', true );
+					if ( $max == $expired ) {
+						$order->update_status( 'cancelled', __( 'Payger Payment Expired ' . $max . ' times', 'payger' ) );
+						//cancel payment
+						$this->payger->cancel_payment( $order_id );
+						//clear hook
+						wp_clear_scheduled_hook( 'payger_check_payment', array(
+							'payment_id' => $payment_id,
+							'order_id'   => $order_id
+						) );
+						break;
+					}
+
+					$expired = $expired + 1;
+
+
+					$args = array(
+						'inputCurrency'  => $input_currency,
+						'outputAmount'   => $total,
+						'outputCurrency' => $output_currency
+					);
+
+					// trigger payment update
+					$response = Payger::post( 'merchants/payments/' . $payment_id . '/address', $args );
+
+					//get new qrcode
+					//202 successfully updated
+					$success = ( 202 === $response['status'] ) ? true : false; //bad response if status different from 201
+
+					if ( $success ) {
+
+						//we need to check the pending subpayment, this
+						//will be the one with the data for the missing
+						//payment
+						$subpayments = $response['data']->content->subPayments;
+						foreach ( $subpayments as $subpayment ) {
+							if ( 'pending' == $subpayment->status ) {
+								$payment = $subpayment;
+								break;
+							}
+						}
+						$qrCode  = $payment->qrCode;
+						$address = $payment->address;
+
+						//Build qrCode image
+						$qrcode_image = $this->payger->generate_qrcode_image( $order_id, $payment );
+
+
+						//update store values for qrcode
+						$order->update_meta_data( 'payger_ammount', $payment->inputAmount );
+						$order->update_meta_data( 'payger_qrcode', $qrCode );
+						$order->update_meta_data( 'payger_qrcode_image', $qrcode_image ); //stores qrcode url so that email can use this.
+						$order->update_meta_data( 'payger_address', $address );
+						$order->update_meta_data( 'payger_expired', $expired );
+
+						$order->save_meta_data();
+
+						//update store values for qrcode
+
+						//trigger new email
+						WC()->mailer()->emails['WC_Email_Customer_On_Hold_Order']->trigger( $order_id, $order );
+
+						// update order not stating first address for payment expired
+						$order->add_order_note( __( 'Address # ' . $expired . ' for payment expired, new one sent to email ', 'payger' ) );
+
+
+					}
+
+					//END SCENARIO 1
+
 					break;
 				}
-
-				$expired = $expired + 1;
-
-
-				$args = array(
-					'inputCurrency' => $input_currency,
-					'outputAmount' => $total,
-					'outputCurrency' => $output_currency
-				);
-
-				// trigger payment update
-				$response = Payger::post( 'merchants/payments/' . $payment_id . '/address', $args );
-
-				//get new qrcode
-				//202 successfully updated
-				$success = ( 202 === $response['status'] ) ? true : false; //bad response if status different from 201
-
-				if ( $success ) {
-
-					//we need to check the pending subpayment, this
-					//will be the one with the data for the missing
-					//payment
-					$subpayments = $response['data']->content->subPayments;
-					foreach( $subpayments as $subpayment ) {
-						if ( 'pending' == $subpayment->status ) {
-							$payment = $subpayment;
-							break;
-						}
-					}
-					$qrCode   = $payment->qrCode;
-					$address  = $payment->address;
-
-					//Build qrCode image
-					$qrcode_image = $this->payger->generate_qrcode_image( $order_id, $payment );
-
-
-					//update store values for qrcode
-					$order->update_meta_data( 'payger_ammount', $payment->inputAmount );
-					$order->update_meta_data( 'payger_qrcode', $qrCode );
-					$order->update_meta_data( 'payger_qrcode_image', $qrcode_image ); //stores qrcode url so that email can use this.
-					$order->update_meta_data( 'payger_address', $address );
-					$order->update_meta_data( 'payger_expired', $expired );
-
-					$order->save_meta_data();
-
-					//update store values for qrcode
-
-					//trigger new email
-					WC()->mailer()->emails['WC_Email_Customer_On_Hold_Order']->trigger( $order_id, $order );
-
-					// update order not stating first address for payment expired
-					$expired_message = $expired - 1;
-					$order->add_order_note( __( 'Address # ' . $expired_message . ' for payment expired, new one sent to email ', 'payger' ) );
-				}
-
-				break;
 
 			case 'FAILED' :
 
@@ -523,26 +540,6 @@ class Woocommerce_Payger_Admin {
 
 		$this->payger->cancel_payment( $order_id );
 
-	}
-
-	/**
-	 * This method serves ajax requests for cancel order
-	 * after timeout
-	 * */
-	public function cancel_expired_order() {
-
-		if ( ! isset( $_GET['order_id'] ) ) {
-			wp_send_json_error();
-			return;
-		}
-
-		$order_id = $_GET['order_id'];
-		$order    = new WC_Order( $order_id );
-		$order->update_status( 'cancelled', __( 'Unpaid order cancelled - time limit reached.', 'payger' ) );
-
-		$this->payger->cancel_payment( $order_id );
-
-		wp_send_json_success();
 	}
 
 

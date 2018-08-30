@@ -366,29 +366,6 @@
                     $('.timer-row__message').hide();
                     $('.timer-row__message.error').show();
                     $('.top-header .timer-row').addClass('error');
-
-
-                    console.log('Trying to cancel order');
-                    $.ajax({
-
-                        cache: false,
-                        url: payger.ajaxurl,
-                        type: "get",
-                        data: ({
-                            nonce:payger.nonce,
-                            action:'cancel_expired_order',
-                            order_id : order_id
-                        }),
-
-                        success: function( response, textStatus, jqXHR ){
-                            console.log('response');
-                            console.log(response);
-                            console.log('Order cancelled');
-                        }
-
-                    });
-
-
                 }
             }, 1000);
         }
