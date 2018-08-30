@@ -424,7 +424,7 @@ class Woocommerce_Payger_Admin {
 				error_log('EXPIRED');
 
 				//SCENARIO 2
-				if ( 'sync' === $this->get_option( 'payment_type' ) ) {
+				if ( 'sync' === $this->payger->get_option( 'payment_type' ) ) {
 
 					$order->update_status( 'cancelled', __( 'Unpaid order cancelled - time limit reached.', 'payger' ) );
 					//cancel payment
