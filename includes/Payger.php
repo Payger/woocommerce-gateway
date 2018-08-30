@@ -48,6 +48,9 @@ Class Payger {
 
 		$response = Payger::exec( 'POST', 'oauth/token', $obj );
 
+		error_log('RESPONSE');
+		error_log(print_r($response, true));
+
 		$token = false;
 		if ( isset( $response['data'] ) ) {
 			$response = $response['data'];
@@ -160,13 +163,15 @@ Class Payger {
 
 	public static function exec($method, $endpoint, $obj = array()) {
 
-		// TESTS      http://merchants-api-test.payger.com/api/v1/
+		// TESTS      http://merchant-api-test.payger.com/api/v1/
 		// PRODUCTION http://merchants-api.payger.com/api/v1/
 
-		$url = 'https://merchant-api{{ ENV }}.payger.com/api/v1/{{ CLASS }}';
+		$url = 'https://merchants-api{{ ENV }}.payger.com/api/v1/{{ CLASS }}';
 		//$url = str_replace( '{{ ENV }}', '-test', $url ); //TODO change this dynamically
 		$url = str_replace( '{{ ENV }}', '', $url ); //TODO change this dynamically
 		$url = str_replace( '{{ CLASS }}', $endpoint, $url );
+
+		error_log('URL '.$url);
 		$curl = curl_init();
 
 		switch( $method ) {
