@@ -160,8 +160,12 @@ Class Payger {
 
 	public static function exec($method, $endpoint, $obj = array()) {
 
-		$url = 'https://merchant-api-{{ ENV }}.payger.com/api/v1/{{ CLASS }}';
-		$url = str_replace( '{{ ENV }}', 'test', $url ); //TODO change this dynamically
+		// TESTS      http://merchants-api-test.payger.com/api/v1/
+		// PRODUCTION http://merchants-api.payger.com/api/v1/
+
+		$url = 'https://merchant-api{{ ENV }}.payger.com/api/v1/{{ CLASS }}';
+		//$url = str_replace( '{{ ENV }}', '-test', $url ); //TODO change this dynamically
+		$url = str_replace( '{{ ENV }}', '', $url ); //TODO change this dynamically
 		$url = str_replace( '{{ CLASS }}', $endpoint, $url );
 		$curl = curl_init();
 
