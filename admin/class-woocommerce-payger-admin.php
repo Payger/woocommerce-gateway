@@ -396,6 +396,7 @@ class Woocommerce_Payger_Admin {
 				}
 				break;
 			case 'OVERPAID' :
+				error_log('OVERPAID');
 				if ( 'processing' !== $order->get_status() ) {
 
 					//calculate overpaid amount
@@ -420,7 +421,7 @@ class Woocommerce_Payger_Admin {
 				break;
 
 			case 'EXPIRED' :
-				error_log('EXPIRED ');
+				error_log('EXPIRED');
 
 				$order_status = $order->get_status();
 				if ( 'cancelled' == $order_status ) {
