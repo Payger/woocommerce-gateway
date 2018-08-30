@@ -423,7 +423,7 @@ class Woocommerce_Payger_Admin {
 				error_log('EXPIRED ');
 
 				$order_status = $order->get_status();
-				if ( 'cancelled' != $order_status ) {
+				if ( 'cancelled' == $order_status ) {
 					wp_clear_scheduled_hook( 'payger_check_payment', array( 'payment_id' => $payment_id, 'order_id' => $order_id ) );
 					break; //order was already canceled do nothing
 				}
