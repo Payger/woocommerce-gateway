@@ -509,7 +509,7 @@ class Woocommerce_Payger_Admin {
 
 	/*
 	 * Call cancel payment for a previous payment that was canceled
-	 *
+	 * This is hooked on the woocommerce_cancelled_order
 	 */
 	public function cancel_order( $order_id ) {
 
@@ -539,6 +539,8 @@ class Woocommerce_Payger_Admin {
 		$order_id = $_GET['order_id'];
 		$order    = new WC_Order( $order_id );
 		$order->update_status( 'cancelled', __( 'Unpaid order cancelled - time limit reached.', 'payger' ) );
+
+		$this->payger->cancel_payment( $order_id );
 
 		wp_send_json_success();
 	}
