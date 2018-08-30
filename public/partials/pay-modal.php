@@ -93,7 +93,7 @@ error_log('FEES RESPONSE');
 error_log( print_r( $response, true ) );
 
 $html  = '<input type="hidden" class="order_id" value="' . $order_id . '">';
-$html .= '<p><a id="modal" href="#ex1" rel="modal:open" class="hide">Open Modal</a></p>';
+$html .= '<p><a id="modal" href="#ex1" rel="modal:open" class="hide">'. __('Open Modal', 'payger') .'</a></p>';
 
 $html .= '<div id="ex1" class="modal">';
 $html .= '<div class="content">';
@@ -114,7 +114,7 @@ $html .= '</bp-spinner>';
 $html .= '</div>';
 $html .= '<div class="timer-row__message">';
 $html .= '<span>';
-$html .= '<span i18n="">Awaiting Payment...</span>';
+$html .= '<span i18n="">' . __( 'Awaiting Payment...', 'payger' ) . '</span>';
 $html .= '</span>';
 $html .= '</div>';
 $html .= '<div class="timer-row__message error hide">';
@@ -159,11 +159,11 @@ $html .= '<line-items class="expanded">
 				<div>
 					<div class="line-items__item">
 						<div class="line-items__item__label" i18n="">' . __('Payment Amount', 'payger') . '</div>
-						<div class="line-items__item__value">' . $input_amount . ' '. $currency .'</div>
+						<div class="line-items__item__value">' . $input_amount - $fee . ' '. $currency .'</div>
 					</div>
 					<div class="line-items__item">
 						<div class="line-items__item__label">
-							<span i18n="">Network Cost</span>
+							<span i18n="">' . __('Network Cost', 'payger' ) . '</span>
 						</div>
 						<div class="line-items__item__value">'. $fee . ' ' . $currency . '</div>
 					</div>
@@ -185,7 +185,7 @@ $html .= '<div class="payment-box">
 							<div ngxclipboard="">
 								<div class="copy-item">
 									<input id="address" type="hidden" value="' . $address . ' ">
-									<span class="item-highlighter item-highlighter--large item-highlighter--primary" i18n="">Copy payment URL</span>
+									<span class="item-highlighter item-highlighter--large item-highlighter--primary" i18n="">' . __( 'Copy payment URL', 'payger' ) . '</span>
 									<img src="' . plugin_dir_url( __FILE__ ) . '../assets/images/copy-icon.svg">
 								</div>
 							</div>
@@ -193,7 +193,7 @@ $html .= '<div class="payment-box">
 					</div>
 					<div class="manual__step-one__instructions manual__step-one__instructions--how-to-pay">
 						<a class="item-highlighter item-highlighter--large item-highlighter--secondary" href="https://payger.com/" target="_blank">
-							<span i18n="">How do I pay this?</span>
+							<span i18n=""> ' . __('How do I pay this?', 'payger' ) . '</span>
 						</a>
 					</div>
 

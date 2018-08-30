@@ -66,7 +66,12 @@ For that time the order will be "pending payment".
 
 The buyer will need to select the products again and go to cart and checkout page.
 
+= Is the stock restored if the order expires? =
 
+Order gets cancelled but the stock is not restored. As WooCommerce does not restores stock on cancellation we also don't do it.
+There are already some plugins to reduce stock upon cancellation.
+
+The buyer will need to select the products again and go to cart and checkout page.
 == Screenshots ==
 
 1. Payger API Keys Tab

@@ -25,7 +25,7 @@ class WC_Email_Customer_Underpaid_Order extends WC_Email {
 	public function __construct() {
 		$this->id             = 'customer_underpaid_order';
 		$this->customer_email = true;
-		$this->title          = __( 'Order uderpaid', 'payger' );
+		$this->title          = __( 'Order underpaid', 'payger' );
 		$this->description    = __( 'This is an order notification sent to customers containing order details after an order is underpaid.', 'payger' );
 		$this->template_html  = 'emails/customer-underpaid-order.php';
 		$this->template_plain = 'emails/plain/customer-underpaid-order.php';

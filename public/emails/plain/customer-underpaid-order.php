@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 echo "= " . $email_heading . " =\n\n";
 
-echo __( "sYour order is on-hold until we confirm payment has been received. Your order details are shown below for your reference:", 'woocommerce' ) . "\n\n";
+echo __( "Your order is on-hold until we confirm payment has been received. Your order details are shown below for your reference:", 'woocommerce' ) . "\n\n";
 
 echo "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n\n";
 

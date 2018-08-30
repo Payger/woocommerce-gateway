@@ -392,7 +392,6 @@ class Woocommerce_Payger_Admin {
 					$order->save_meta_data();
 
 					// trigger new email
-					error_log('TRIGGER CUSTOMER UNDERPAID EMAIL');
 					$this->trigger_email( $order_id, 'customer_underpaid_order' );
 				}
 				break;
@@ -427,7 +426,7 @@ class Woocommerce_Payger_Admin {
 
 				$expired = $order->get_meta( 'payger_expired', true );
 				if ( $max == $expired ) {
-					$order->update_status( 'cancelled', __( 'Payger Payment Expired 5 times', 'payger' ) );
+					$order->update_status( 'cancelled', __( 'Payger Payment Expired '. $max . ' times', 'payger' ) );
 					//clear hook
 					wp_clear_scheduled_hook( 'payger_check_payment', array( 'payment_id' => $payment_id, 'order_id' => $order_id ) );
 					break;
