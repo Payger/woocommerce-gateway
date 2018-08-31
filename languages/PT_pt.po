@@ -2,13 +2,17 @@
 # This file is distributed under the same license as the Payger package.
 msgid ""
 msgstr ""
-"PO-Revision-Date: 2018-08-30 13:26:03+0000\n"
+"PO-Revision-Date: 2018-08-31 14:33:52+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: GlotPress/1.0-alpha-1000\n"
 "Project-Id-Version: Payger\n"
+
+#: public/partials/pay-modal.php:127
+msgid "This payment is underpaid. Please use the data below to pay the missing amount"
+msgstr "Esta encomenda está parcialmente paga. Por favor use os dados abaixo para completar o pagamento."
 
 #: public/class-wc-email-customer-underpaid-order.php:28
 msgid "Order underpaid"
@@ -39,8 +43,8 @@ msgid "You must choose a crypto currency first."
 msgstr "Deve primeiro escolher uma criptomoeda."
 
 #: admin/class-woocommerce-payger-admin.php:171
-#: includes/class-woocommerce-payger-gateway.php:393
-#: includes/class-woocommerce-payger-gateway.php:541
+#: includes/class-woocommerce-payger-gateway.php:395
+#: includes/class-woocommerce-payger-gateway.php:543
 msgid "Payment error: "
 msgstr "Erro de pagamento:"
 
@@ -65,8 +69,8 @@ msgid "Payger qrCode"
 msgstr "Payger qrCode"
 
 #: admin/class-woocommerce-payger-admin.php:277
-#: admin/class-woocommerce-payger-admin.php:326
-#: admin/class-woocommerce-payger-admin.php:413
+#: admin/class-woocommerce-payger-admin.php:332
+#: admin/class-woocommerce-payger-admin.php:422
 msgid "Payger Payment Confirmed"
 msgstr "Pagamento via Payger Confirmado"
 
@@ -74,31 +78,31 @@ msgstr "Pagamento via Payger Confirmado"
 msgid "Still Waiting for Payment"
 msgstr "A Aguardar Pagamento"
 
-#: admin/class-woocommerce-payger-admin.php:327
+#: admin/class-woocommerce-payger-admin.php:333
 msgid "Payment is verified and completed."
 msgstr "Pagamento foi verificado e está completo."
 
-#: admin/class-woocommerce-payger-admin.php:350
+#: admin/class-woocommerce-payger-admin.php:356
 msgid "Payment is verified but not completed. Missing amount of "
 msgstr "Pagamento foi verificado mas não está completo. Está em falta o montante de"
 
-#: admin/class-woocommerce-payger-admin.php:350
+#: admin/class-woocommerce-payger-admin.php:356
 msgid " an email was sent to the buyer."
 msgstr "um email foi enviado ao comprador."
 
-#: admin/class-woocommerce-payger-admin.php:415
+#: admin/class-woocommerce-payger-admin.php:424
 msgid "Payment is verified and completed. The amount of "
 msgstr "Pagamento foi verificado e está completo. O montante de"
 
-#: admin/class-woocommerce-payger-admin.php:415
+#: admin/class-woocommerce-payger-admin.php:424
 msgid " was overpaid."
 msgstr "foi pago a mais."
 
-#: admin/class-woocommerce-payger-admin.php:494
+#: admin/class-woocommerce-payger-admin.php:526
 msgid "Payger Payment Failed"
 msgstr "Pagamento através do Payger falhou"
 
-#: admin/class-woocommerce-payger-admin.php:534
+#: admin/class-woocommerce-payger-admin.php:437
 msgid "Unpaid order cancelled - time limit reached."
 msgstr "Encomenda não paga foi cancelada - tempo limite atingido."
 
@@ -216,7 +220,7 @@ msgstr "Por favor confirme que quer prosseguir com a sua encomenda."
 msgid "*This is an estimate value. Due to crypto currency volatility this rate may change. Please take this into consideration."
 msgstr "*Este é um valor estimado. Devido à volatilidade das criptomoedas a rate pode variar. Por favor tenha isso em conta."
 
-#: includes/class-woocommerce-payger-gateway.php:374
+#: includes/class-woocommerce-payger-gateway.php:376
 msgid "Awaiting Payger payment"
 msgstr "A aguardar pagamento"
 
@@ -264,23 +268,23 @@ msgstr "A aguardar pagamento..."
 msgid "This payment has expired"
 msgstr "Este pagamento expirou"
 
-#: public/partials/pay-modal.php:161
+#: public/partials/pay-modal.php:166
 msgid "Payment Amount"
 msgstr "Montante a pagar"
 
-#: public/partials/pay-modal.php:166
+#: public/partials/pay-modal.php:171
 msgid "Network Cost"
 msgstr "Taxa a pagar"
 
-#: public/partials/pay-modal.php:171
+#: public/partials/pay-modal.php:176
 msgid "Total"
 msgstr "Total"
 
-#: public/partials/pay-modal.php:188
+#: public/partials/pay-modal.php:193
 msgid "Copy payment URL"
 msgstr "Copiar o URL de pagamento"
 
-#: public/partials/pay-modal.php:196
+#: public/partials/pay-modal.php:201
 msgid "How do I pay this?"
 msgstr "Como pago?"
 
