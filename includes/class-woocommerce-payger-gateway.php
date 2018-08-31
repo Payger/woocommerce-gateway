@@ -388,7 +388,7 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			return array('image' => $qrcode_image, 'amount' => $payment->inputAmount, 'code' => $payment->qrCode, 'address' => $payment->address );
 
 		} else {
-			error_log(print_r($response, true));
+			error_log( print_r( $response, true ) );
 			$error_message = $response['data']->error->message;
 			$error_message = apply_filters( 'payger_payment_error_message', $error_message );
 

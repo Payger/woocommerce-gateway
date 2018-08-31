@@ -337,8 +337,6 @@
         if( counting ) {
             var x = setInterval(function () {
 
-                console.log('UPDATE COUNT');
-
                 // Get todays date and time
                 var now = new Date().getTime();
 
@@ -397,16 +395,36 @@
 
                     if( response.success ) {
 
-                        var status = response.data.status;
-                        var url    = response.data.thank_you_url;
+                        var status        = response.data.status;
+                        var url           = response.data.thank_you_url;
+                        var payger_status = response.data.payger_status;
+                        var address       = response.data.address;
+                        var qrcode        = response.data.qrcode;
+                        var amount        = response.data.amount;
+                        var currency      = response.data.currency;
 
                         //order with status processing so lets
                         //update view and stop
-                          if( 'processing' == status ) {
-                             clearInterval(y); //do not check for status again
-                             //redirect to thank you page
-                             window.location.href = url;
-                          }
+                        if( 'processing' == status ) {
+                            clearInterval(y); //do not check for status again
+                            //redirect to thank you page
+                            window.location.href = url;
+                        }
+
+                        // Needs to update message
+                        // Refresh qrCode and Address
+                        if( 'UNDERPAID' == payger_status ) {
+                            $('.timer-row__message').hide();
+                            $('.timer-row__message.underpaid').show();
+                            $('.top-header .timer-row').addClass('underpaid');
+
+                            //update data for user
+                            $('#address').val(address);
+                            $('.payment__scan__qrcode img').attr('src', 'data:image/gif;base64,'+qrcode);
+                            $('.amount').html( amount + ' ' + currency );
+
+                        }
+
                     }
                 }
 

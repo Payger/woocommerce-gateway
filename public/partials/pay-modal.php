@@ -122,6 +122,11 @@ $html .= '<span>';
 $html .= '<span i18n="">' . __( 'This payment has expired', 'payger') . '</span>';
 $html .= '</span>';
 $html .= '</div>';
+$html .= '<div class="timer-row__message underpaid hide">';
+$html .= '<span>';
+$html .= '<span i18n="">' . __( 'This payment is underpaid. Please use the data below to pay the missing amount', 'payger') . '</span>';
+$html .= '</span>';
+$html .= '</div>';
 $html .= '<div class="timer-row__time-left">15:00</div>';
 $html .= '</div>'; //.timer-row
 $html .= '</div>'; //.top-header
@@ -159,7 +164,7 @@ $html .= '<line-items class="expanded">
 				<div>
 					<div class="line-items__item">
 						<div class="line-items__item__label" i18n="">' . __('Payment Amount', 'payger') . '</div>
-						<div class="line-items__item__value">' . $crypto_amount . ' '. $currency .'</div>
+						<div class="line-items__item__value amount">' . $crypto_amount . ' '. $currency .'</div>
 					</div>
 					<div class="line-items__item">
 						<div class="line-items__item__label">

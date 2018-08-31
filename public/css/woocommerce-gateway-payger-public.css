@@ -229,6 +229,10 @@ bp-spinner{
     background-color: red;
 }
 
+.top-header .timer-row.underpaid {
+    background-color: darkorange;
+}
+
 .top-header .timer-row__time-left {
     font-size: 13.5px;
     z-index: 1;

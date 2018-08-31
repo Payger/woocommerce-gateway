@@ -306,6 +306,12 @@ class Woocommerce_Payger_Admin {
 		}
 
 		$response = Payger::get( 'merchants/payments/' . $payment_id );
+		$success = ( 200 === $response['status'] ) ? true : false; //bad response if status different from 200
+
+		if( ! $success )
+		{
+			return; //could not find payment with this particular id.
+		}
 
 		$status   = $response['data']->content->status;
 		$order    = new WC_Order( $order_id );
@@ -391,8 +397,10 @@ class Woocommerce_Payger_Admin {
 
 					$order->save_meta_data();
 
-					// trigger new email
-					$this->trigger_email( $order_id, 'customer_underpaid_order' );
+					// trigger new email only for assynchronous payments
+					if ( 'sync' !== $this->payger->get_option( 'payment_type' ) ) {
+						$this->trigger_email( $order_id, 'customer_underpaid_order' );
+					}
 				}
 				break;
 			case 'OVERPAID' :
@@ -522,6 +530,9 @@ class Woocommerce_Payger_Admin {
 				break;
 		}
 
+		//saves payment status on payger so that we can update modal via js
+		$order->update_meta_data( 'payger_status', $status );
+		$order->save_meta_data();
 	}
 
 	/*
@@ -556,8 +567,6 @@ class Woocommerce_Payger_Admin {
 		$mailer = WC()->mailer();
 		$mails = $mailer->get_emails();
 
-		error_log( print_r( $mails, true ) );
-
 		foreach ( $mails as $mail ) {
 			if ( $mail->id == $email_id ) {
 				$mail->trigger( $order_id );
@@ -577,9 +586,23 @@ class Woocommerce_Payger_Admin {
 			return;
 		}
 
-		$order_id = $_GET['order_id'];
-		$order    = new WC_Order( $order_id );
-		$data     = array( 'status' => $order->get_status(), 'thank_you_url' => $this->payger->get_return_url( $order ) );
+		$session_data  = WC()->session->get( 'crypto_meta' );
+		$order_id      = $_GET['order_id'];
+		$order         = new WC_Order( $order_id );
+		$payger_status = $order->get_meta( 'payger_status', true );
+		$address       = $order->get_meta( 'payger_address', true );
+		$qrCode        = $order->get_meta( 'payger_qrcode', true );
+		$amount        = $order->get_meta( 'payger_ammount', true );
+		$currency      = $session_data['currency'];
+		$data          = array(
+			'status' => $order->get_status(),
+			'thank_you_url' => $this->payger->get_return_url( $order ),
+			'payger_status' => $payger_status,
+			'address' => $address,
+			'qrcode'  => $qrCode->content,
+			'amount'  => $amount,
+			'currency' => $currency
+			);
 
 		wp_send_json_success( $data );
 	}
