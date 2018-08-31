@@ -74,7 +74,7 @@ if ( $order->get_meta('payger_qrcode', true ) ) {
 }
 
 //Get applicable fee
-$fee      = '';
+$fee      = 0;
 $args     = array(
 	'inputCurrency'  => $currency,
 	'outputAmount'   => $amount,
@@ -88,6 +88,8 @@ if( $success )
 	$fee = $response['data']->content->fee;
 	$fee = round( $fee, $precision );
 }
+
+$crypto_amount = $input_amount - $fee;
 
 
 $html  = '<input type="hidden" class="order_id" value="' . $order_id . '">';
@@ -157,7 +159,7 @@ $html .= '<line-items class="expanded">
 				<div>
 					<div class="line-items__item">
 						<div class="line-items__item__label" i18n="">' . __('Payment Amount', 'payger') . '</div>
-						<div class="line-items__item__value">' . $input_amount . ' '. $currency .'</div>
+						<div class="line-items__item__value">' . $crypto_amount . ' '. $currency .'</div>
 					</div>
 					<div class="line-items__item">
 						<div class="line-items__item__label">
