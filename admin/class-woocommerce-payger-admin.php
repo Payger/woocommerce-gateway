@@ -217,7 +217,7 @@ class Woocommerce_Payger_Admin {
 		$qrCode   = $order->get_meta( 'payger_qrcode_image', true );
 		$address  = $order->get_meta( 'payger_address', true );
 		$currency = $order->get_meta( 'payger_currency', true );
-		$amount   = $order->get_meta( 'payger_ammount', true );
+		$amount   = $order->get_meta( 'payger_amount', true );
 
 		$message = apply_filters( 'payger_thankyou_previous_qrCode', __('Please use the following qrCode to process your payment.', 'payger') );
 
@@ -258,9 +258,7 @@ class Woocommerce_Payger_Admin {
 		$payment_id = $_POST['id'];
 
 		//perform request check status
-		//$payger_instance  = $this->payger->get_instance();
-		//$response         = $payger_instance->get( 'merchants/payments/' . $payment_id );
-		$response           = Payger::get( 'merchants/payments/' . $payment_id );
+		$response = Payger::get( 'merchants/payments/' . $payment_id );
 
 		$result = $response['data']->content;
 		
@@ -356,9 +354,9 @@ class Woocommerce_Payger_Admin {
 				$order->add_order_note( __( 'Payment is verified but not completed. Missing amount of ', 'payger' ) . $missing_value . $output_currency . __( ' an email was sent to the buyer.', 'payger' ) );
 
 				$args = array(
-					'inputCurrency'  => $input_currency,
-				    'outputAmount'   => $missing_value,
-                    'outputCurrency' => $output_currency
+					'paymentCurrency' => $input_currency,
+				    'productAmount'   => $missing_value,
+                    'productCurrency' => $output_currency
 				);
 
 				// trigger payment update
@@ -390,7 +388,7 @@ class Woocommerce_Payger_Admin {
 					$qrcode_image = $this->payger->generate_qrcode_image( $order_id, $payment );
 
 					//update store values for qrcode
-					$order->update_meta_data( 'payger_ammount', $payment->inputAmount );
+					$order->update_meta_data( 'payger_amount', $payment->inputAmount );
 					$order->update_meta_data( 'payger_qrcode', $qrCode );
 					$order->update_meta_data( 'payger_qrcode_image', $qrcode_image ); //stores qrcode url so that email can use this.
 					$order->update_meta_data( 'payger_address', $address );
@@ -464,9 +462,9 @@ class Woocommerce_Payger_Admin {
 
 
 					$args = array(
-						'inputCurrency'  => $input_currency,
-						'outputAmount'   => $total,
-						'outputCurrency' => $output_currency
+						'paymentCurrency' => $input_currency,
+						'productAmount'   => $total,
+						'productCurrency' => $output_currency
 					);
 
 					// trigger payment update
@@ -496,7 +494,7 @@ class Woocommerce_Payger_Admin {
 
 
 						//update store values for qrcode
-						$order->update_meta_data( 'payger_ammount', $payment->inputAmount );
+						$order->update_meta_data( 'payger_amount', $payment->inputAmount );
 						$order->update_meta_data( 'payger_qrcode', $qrCode );
 						$order->update_meta_data( 'payger_qrcode_image', $qrcode_image ); //stores qrcode url so that email can use this.
 						$order->update_meta_data( 'payger_address', $address );
@@ -592,7 +590,7 @@ class Woocommerce_Payger_Admin {
 		$payger_status = $order->get_meta( 'payger_status', true );
 		$address       = $order->get_meta( 'payger_address', true );
 		$qrCode        = $order->get_meta( 'payger_qrcode', true );
-		$amount        = $order->get_meta( 'payger_ammount', true );
+		$amount        = $order->get_meta( 'payger_amount', true );
 		$currency      = $session_data['currency'];
 		$data          = array(
 			'status' => $order->get_status(),

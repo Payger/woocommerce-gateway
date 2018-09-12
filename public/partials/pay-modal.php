@@ -43,16 +43,17 @@ if ( $order->get_meta('payger_qrcode', true ) ) {
 
 	$qrCode       = $order->get_meta( 'payger_qrcode', true );
 	$address      = $order->get_meta( 'payger_address', true );
-	$input_amount = $order->get_meta( 'payger_ammount', true );
+	$input_amount = $order->get_meta( 'payger_amount', true );
+	$fee          = $order->get_meta( 'payger_fee', true );
 
 } else {
 	$args   = array(
 		'externalId'        => sprintf( '%03d', $order_id ),
 		'description'       => $description,
-		'inputCurrency'     => $currency,
-		'outputCurrency'    => $selling_currency,
+		'paymentCurrency'   => $currency,
+		'productCurrency'   => $selling_currency,
+		'productAmount'     => $amount,
 		'source'            => $site_name,
-		'outputAmount'      => $amount,
 		'buyerName'         => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
 		'buyerEmailAddress' => $order->get_billing_email(),
 		'callback'          => array( 'url' => WC()->api_request_url( 'WC_Gateway_Payger' ), 'method' => 'POST' ),
@@ -71,25 +72,14 @@ if ( $order->get_meta('payger_qrcode', true ) ) {
 	$input_amount = $res['amount'];
 	$qrCode       = $res['code'];
 	$address      = $res['address'];
-}
-
-//Get applicable fee
-$fee      = 0;
-$args     = array(
-	'inputCurrency'  => $currency,
-	'outputAmount'   => $amount,
-	'outputCurrency' => $selling_currency
-);
-
-$response = Payger::post( 'merchants/fees/', $args );
-$success  = ( 200 === $response['status'] ) ? true : false; //bad response if status different from 201
-if( $success )
-{
-	$fee = $response['data']->content->fee;
-	$fee = round( $fee, $precision );
+	$fee          = $res['fee'];
 }
 
 $crypto_amount = $input_amount - $fee;
+
+error_log('CAULCUATe FEE '.$fee);
+error_log('TOTAL '.$input_amount);
+error_log('SUB '.$crypto_amount);
 
 
 $html  = '<input type="hidden" class="order_id" value="' . $order_id . '">';

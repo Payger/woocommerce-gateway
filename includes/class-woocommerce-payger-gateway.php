@@ -313,10 +313,10 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		$args = array (
 			'externalId'        => sprintf( '%03d', $order_id ),
 			'description'       => $cart_items,
-            'inputCurrency'	    => $asset,
-            'outputCurrency'    => $selling_currency,
+            'paymentCurrency'	=> $asset,
+            'productCurrency'   => $selling_currency,
+			'productAmount'	    => $amount,
             'source'            => get_bloginfo( 'name' ),
-		    'outputAmount'	    => $amount,
             'buyerName'	        => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
 		    'buyerEmailAddress'	=> $order->get_billing_email(),
 			'callback'          => array( 'url' => WC()->api_request_url( 'WC_Gateway_Payger' ), 'method' => 'POST' ),
@@ -361,15 +361,19 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			$sub_payments = $response['data']->content->subPayments;
 			$payment      = $sub_payments[0];
 			$qrcode_image = self::generate_qrcode_image( $order_id, $payment );
+			$fee          = $response['data']->content->fee->feeInPaymentCurrency->fee;
+
+			error_log('RESPONSE FEE '.$fee);
 
 			//save meta to possible queries and to show information on thank you page or emails
 			$order->add_meta_data( 'payger_currency',     $currency, true );
-			$order->add_meta_data( 'payger_ammount',      $payment->inputAmount, true );
+			$order->add_meta_data( 'payger_amount',       $payment->paymentAmount, true );
 			$order->add_meta_data( 'payger_qrcode',       $payment->qrCode, true );
 			$order->add_meta_data( 'payger_qrcode_image', $qrcode_image, true ); //stores qrcode url so that email can use this.
 			$order->add_meta_data( 'payger_payment_id',   $payment_id, true );
 			$order->add_meta_data( 'payger_address',      $payment->address, true );
 			$order->add_meta_data( 'payger_expired',      0 ); //controls number of expirations
+			$order->add_meta_data( 'payger_fee',          $fee);
 
 			// Mark as on-hold ( we're awaiting for the payment )
 			if ( $order_status ) {
@@ -385,7 +389,15 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			//schedule event to check this payment status
 			wp_schedule_event( time(), 'minute', 'payger_check_payment', array( 'payment_id' => $payment_id, 'order_id' => $order_id ) );
 
-			return array('image' => $qrcode_image, 'amount' => $payment->inputAmount, 'code' => $payment->qrCode, 'address' => $payment->address );
+			$result = array(
+				'image'   => $qrcode_image,
+				'amount'  => $payment->paymentAmount,
+				'code'    => $payment->qrCode,
+				'address' => $payment->address,
+				'fee'     => $fee
+			);
+
+			return $result;
 
 		} else {
 			error_log( print_r( $response, true ) );
@@ -462,9 +474,6 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 
 		$selling_currency = get_option('woocommerce_currency');
 
-		//we need to pass an amount it's a bridge requirement
-		$args = array('from' => $selling_currency, 'amount' => 10 );
-
 		$args = array( 'productCurrency' => $selling_currency );
 
 		$response = Payger::get( 'merchants/currencies', $args );
@@ -513,9 +522,9 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 		}
 
 		$args = array(
-			'from'   => $selling_currency,
-			'to'     => $choosen_crypto,
-			'amount' => $amount
+			'productCurrency'   => $selling_currency,
+			'paymentCurrencies' => $choosen_crypto,
+			'amount'            => $amount
 		);
 		$response = Payger::get( 'merchants/exchange-rates', $args );
 
