@@ -388,7 +388,7 @@ class Woocommerce_Payger_Admin {
 					$qrcode_image = $this->payger->generate_qrcode_image( $order_id, $payment );
 
 					//update store values for qrcode
-					$order->update_meta_data( 'payger_amount', $payment->inputAmount );
+					$order->update_meta_data( 'payger_amount', $payment->paymentAmount );
 					$order->update_meta_data( 'payger_qrcode', $qrCode );
 					$order->update_meta_data( 'payger_qrcode_image', $qrcode_image ); //stores qrcode url so that email can use this.
 					$order->update_meta_data( 'payger_address', $address );
@@ -494,7 +494,7 @@ class Woocommerce_Payger_Admin {
 
 
 						//update store values for qrcode
-						$order->update_meta_data( 'payger_amount', $payment->inputAmount );
+						$order->update_meta_data( 'payger_amount', $payment->paymentAmount );
 						$order->update_meta_data( 'payger_qrcode', $qrCode );
 						$order->update_meta_data( 'payger_qrcode_image', $qrcode_image ); //stores qrcode url so that email can use this.
 						$order->update_meta_data( 'payger_address', $address );
