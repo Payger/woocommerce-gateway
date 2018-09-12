@@ -77,11 +77,6 @@ if ( $order->get_meta('payger_qrcode', true ) ) {
 
 $crypto_amount = $input_amount - $fee;
 
-error_log('CAULCUATe FEE '.$fee);
-error_log('TOTAL '.$input_amount);
-error_log('SUB '.$crypto_amount);
-
-
 $html  = '<input type="hidden" class="order_id" value="' . $order_id . '">';
 $html .= '<p><a id="modal" href="#ex1" rel="modal:open" class="hide">'. __('Open Modal', 'payger') .'</a></p>';
 

@@ -318,8 +318,6 @@ class Woocommerce_Payger_Admin {
 		$input_currency  = $order->get_meta( 'payger_currency' );
 		$output_currency = get_option('woocommerce_currency');
 
-		error_log('PAYMENT STATUS FOR ORDER ' .$order_id . ' ' .$status );
-
 		switch( $status ) {
 			case 'PENDING' :
 				break; //do nothing order still waits for payment
@@ -336,10 +334,8 @@ class Woocommerce_Payger_Admin {
 
 				break;
 			case 'UNDERPAID' :
-				error_log('UNDERPAID ');
 
 				//check for missing amount
-
 				$subpayments = $response['data']->content->subPayments;
 				$paid        = 0;
 				foreach( $subpayments as $payment ) {
@@ -380,7 +376,6 @@ class Woocommerce_Payger_Admin {
 						}
 					}
 
-					//  error_log(print_r($payment, true));
 					$qrCode  = $payment->qrCode;
 					$address = $payment->address;
 
@@ -402,7 +397,6 @@ class Woocommerce_Payger_Admin {
 				}
 				break;
 			case 'OVERPAID' :
-				error_log('OVERPAID');
 				if ( 'processing' !== $order->get_status() ) {
 
 					//calculate overpaid amount
@@ -427,8 +421,6 @@ class Woocommerce_Payger_Admin {
 				break;
 
 			case 'EXPIRED' :
-				error_log('EXPIRED');
-
 				//SCENARIO 2
 				if ( 'sync' === $this->payger->get_option( 'payment_type' ) ) {
 
