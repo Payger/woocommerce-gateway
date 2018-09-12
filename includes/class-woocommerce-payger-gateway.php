@@ -363,8 +363,6 @@ class Woocommerce_Payger_Gateway extends WC_Payment_Gateway {
 			$qrcode_image = self::generate_qrcode_image( $order_id, $payment );
 			$fee          = $response['data']->content->fee->feeInPaymentCurrency->fee;
 
-			error_log('RESPONSE FEE '.$fee);
-
 			//save meta to possible queries and to show information on thank you page or emails
 			$order->add_meta_data( 'payger_currency',     $currency, true );
 			$order->add_meta_data( 'payger_amount',       $payment->paymentAmount, true );

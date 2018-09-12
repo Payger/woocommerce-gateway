@@ -11,8 +11,8 @@
  * Plugin URI:        http://www.widgilabs.com
  * Description:       Payger Payment Gateway for Woocommerce
  * Version:           1.0.0
- * Author:            WidgiLabs
- * Author URI:        http://www.widgilabs.com
+ * Author:            Payger
+ * Author URI:        https://payger.com/
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain:       woocommerce-gateway-payger

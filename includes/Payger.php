@@ -48,9 +48,6 @@ Class Payger {
 
 		$response = Payger::exec( 'POST', 'oauth/token', $obj );
 
-		error_log('RESPONSE');
-		error_log(print_r($response, true));
-
 		$token = false;
 		if ( isset( $response['data'] ) ) {
 			$response = $response['data'];
@@ -190,10 +187,7 @@ Class Payger {
 			default:
 				break;
 		}
-
-	//	error_log('URL '.$url);
-
-
+		
 		curl_setopt( $curl, CURLOPT_URL, $url );
 		curl_setopt( $curl, CURLOPT_RETURNTRANSFER, TRUE );
 		curl_setopt( $curl, CURLOPT_TIMEOUT, 40 ); // times out after 40s
