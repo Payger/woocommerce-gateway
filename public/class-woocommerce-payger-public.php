@@ -111,7 +111,7 @@ class Woocommerce_Payger_Public {
 		$qrCode  = $order->get_meta('payger_qrcode');
 		$address = $order->get_meta('payger_address');
 		$currency = $order->get_meta('payger_currency');
-		$amount   = $order->get_meta('payger_ammount');
+		$amount   = $order->get_meta('payger_amount');
 
 		//FIXME possible add currency icon
 
