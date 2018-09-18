@@ -4,7 +4,7 @@
   "description": "Payger Woocommerce Gateway extends Woocommerce Gateways to accept payments with crypto currencies through Payger.",
   "keywords": ["wordpress", "plugin", "woocommerce", "payment gateways"],
   "homepage": "https://github.com/Payger/woocommerce-gateway",
-  "license": "GPLv2 or later",
+  "license": "GPL-2.0-or-later",
   "authors": [
     {
       "name": "Payger",
