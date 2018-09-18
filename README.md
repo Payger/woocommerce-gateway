@@ -1,17 +1,8 @@
-=== Plugin Name ===
-Contributors: payger, aaires, widgilabs
-Tags: woocommerce, payger, payment gateway, payment, crypto currency, bitcoin
-Requires at least: 3.0.1
-Tested up to: 4.9.6
-Stable tag: 4.3
-License: GPLv2 or later
-License URI: http://www.gnu.org/licenses/gpl-2.0.html
-
-Payger Woocommerce Gateway
-
-== Description ==
+# Payger Woocommerce Gateway
 
 Extends Woocommerce Gateways to accept payments with crypto currencies through Payger.
+
+## Description
 
 Payger Woocommerce Gateway is a FREE WordPress plugin by [Payger](https://payger.com).
 Start accepting Bitcoins, Ethereum or other crypto currencies on Your Woocommerce online store.
@@ -28,7 +19,8 @@ Key Features:
 * Handles underpaid orders, asking customer the missing amount if necessary.
 * Complete checkout process happens within your website/theme
 
-== Installation ==
+
+## Installation
 
 This plugin requires WooCommerce and a Payger account. Please make sure you have WooCommerce installed and a Payger account created.
 
@@ -43,7 +35,7 @@ This plugin requires WooCommerce and a Payger account. Please make sure you have
 
 You are now ready to start accepting crypto currencies on your website.
 
-== Frequently Asked Questions ==
+## Frequently Asked Questions
 
 = Do I need to have a Payger account? =
 
@@ -72,12 +64,3 @@ Order gets cancelled but the stock is not restored. As WooCommerce does not rest
 There are already some plugins to reduce stock upon cancellation.
 
 The buyer will need to select the products again and go to cart and checkout page.
-== Screenshots ==
-
-1. Payger API Keys Tab
-2. API Key successfully created. Username is you API Key and Password is your API secret.
-3. Payger payment gateway settings tab under WooCommerce Settings.
-4. Checkout page select currency.
-5. Checkout page currency rate information for the selected crypto currency.
-6. Popup with address to pay and payment information.
-7. Popup when payment gets expired and order canceled.
