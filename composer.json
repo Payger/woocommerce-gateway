@@ -16,6 +16,7 @@
       "homepage": "http://www.widgilabs.com/",
       "role": "Developer"
     }
-  ]
+  ],
+  "minimum-stability": "dev"
 }
 
