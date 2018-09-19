@@ -37,7 +37,7 @@ You are now ready to start accepting crypto currencies on your website.
 
 Alternative to step 3 you can install your plugin via composer with
 
-```composer require payger/woocommerce-gateway``
+```composer require payger/woocommerce-gateway```
 
 ## Frequently Asked Questions
 
