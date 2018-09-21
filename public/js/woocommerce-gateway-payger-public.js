@@ -320,7 +320,7 @@
             counting = true;
         } else {
             //payment expired
-            $('.timer-row__time-left').html("0:0");
+            $('.timer-row__time-left').html("00:00");
             $('bp-spinner').hide();
             $('.timer-row__message').hide();
             $('.timer-row__message.error').show();
@@ -352,14 +352,14 @@
 
 
                 // Display the result in the element with id="demo"
-                $('.timer-row__time-left').html(localStorage.getItem(order_min_counter) + ":" + localStorage.getItem(order_sec_counter));
+                $('.timer-row__time-left').html( twoDigit( localStorage.getItem(order_min_counter) )+ ":" + twoDigit( localStorage.getItem(order_sec_counter) ));
 
                 // If the count down is finished, write some text
                 // and cancel the order due to missing payment.
                 if (distance < 0) {
                     counting = false;
                     clearInterval(x);
-                    $('.timer-row__time-left').html("0:0");
+                    $('.timer-row__time-left').html("00:00");
                     $('bp-spinner').hide();
                     $('.timer-row__message').hide();
                     $('.timer-row__message.error').show();
@@ -446,6 +446,11 @@
             return true;
         }
         return false;
+    }
+
+    function twoDigit(number) {
+        var twodigit = number >= 10 ? number : "0"+number.toString();
+        return twodigit;
     }
 
 
